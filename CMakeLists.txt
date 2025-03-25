@@ -11,3 +11,4 @@ endif()
 
 
 add_subdirectory(LIFNetwork)
+add_subdirectory(NielNetwork)

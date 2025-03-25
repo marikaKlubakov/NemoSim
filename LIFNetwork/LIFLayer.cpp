@@ -6,27 +6,14 @@
 
 //implementation of LIFLayer class
 
-LIFLayer:: LIFLayer(int numNeurons, double Cm, double Cf, double Vth, double VDD, double dt) 
+LIFLayer:: LIFLayer(int numNeurons, double Cm, double Cf, double Vth, double VDD, double dt, YFlash* yflash)
+	:m_VDD(VDD) ,yflash(yflash)
 {
    m_neurons.reserve(numNeurons);
-   m_weights.resize(numNeurons);
    for (int i = 0; i < numNeurons; ++i)
 	{
-	   m_neurons.emplace_back(Cm, Cf, Vth, VDD, dt);
+	   m_neurons.emplace_back(Cm, Cf, Vth, VDD, dt, yflash);
 	}
-}
-
-void LIFLayer::initializeWeights(int nextLayerSize)
-{
-   std::random_device rd;
-   std::mt19937 gen(rd());
-   std::uniform_real_distribution<double> dist(-1.0, 1.0);
-   for (auto& row : m_weights) {
-	   row.resize(nextLayerSize);
-	   for (double& w : row) {
-		   w = dist(gen);
-	   }
-   }
 }
 
 unsigned int LIFLayer::getLayerSize() const
@@ -34,11 +21,13 @@ unsigned int LIFLayer::getLayerSize() const
 	return m_neurons.size();
 }
 
-void LIFLayer::updateLayer(const std::vector<double>& input)
+void LIFLayer::updateLayer(const std::vector<double>& input, int row, int col)
 {
 	for (size_t i = 0; i < input.size(); ++i)
 	{
-		m_neurons[i].update(input[i]);
+		double Vgs = input[i];
+		double Vds = m_VDD - input[i];
+		m_neurons[i].update(Vgs, Vds, i, 0);
 	}
 }
 

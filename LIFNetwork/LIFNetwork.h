@@ -8,7 +8,9 @@
 class LIFNetwork {
 
 public:
-   LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_, const std::string& type);
+	LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_,
+		double req_, double gm_, double CGBr_, double CGBi_, double CGSr_, double CGSi_,
+		double CGDr_, double CGDi_, double CDBr_, double CDBi_, double CMOS_);
 
    void feedForward(const std::vector<double>& input) ;
    void printNetworkState(int timestep) const ;
@@ -16,8 +18,8 @@ public:
 
 private:
 	std::vector<LIFLayer> m_layers;
+	YFlash yflash;
 	double m_VDD, m_dt;
-	std::string m_networkType;
 	std::vector<double> vms;
 };
 // --------- LIF Engine (Main Controller) ---------

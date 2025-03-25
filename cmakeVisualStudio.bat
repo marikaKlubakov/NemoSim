@@ -5,7 +5,7 @@ if not exist %CMAKE_PATH% (
 )
 %CMAKE_PATH% ./LIFNetwork -B_build64 -G "Visual Studio 16 2019" -T host=x64
 
-%CMAKE_PATH% --build _build64 --target LIFNetworkSimulation --config Debug
+%CMAKE_PATH% --build _build64 --target Nemo --config Debug
 :end
 
 

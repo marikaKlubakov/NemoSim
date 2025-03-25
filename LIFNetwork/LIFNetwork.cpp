@@ -7,16 +7,16 @@
 
 //implementation of LIFNetwork class
 
-LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_, const std::string& type)
-       : m_VDD(VDD_), m_dt(dt_), m_networkType(type)
+LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_,
+	double req_, double gm_, double CGBr_, double CGBi_, double CGSr_, double CGSi_,
+	double CGDr_, double CGDi_, double CDBr_, double CDBi_, double CMOS_)
+	: m_VDD(VDD_), m_dt(dt_),
+	yflash(layerSizes[0], layerSizes[1], req_, gm_, VDD_,
+		CGBr_, CGBi_, CGSr_, CGSi_, CGDr_, CGDi_, CDBr_, CDBi_, CMOS_)
 {
 	for (int size : layerSizes)
 	{
-		m_layers.emplace_back(size, Cm, Cf, Vth, m_VDD, m_dt);
-	}
-	for (size_t i = 0; i < m_layers.size() - 1; ++i)
-	{
-		m_layers[i].initializeWeights(m_layers[i + 1].getLayerSize());
+		m_layers.emplace_back(size, Cm, Cf, Vth, m_VDD, m_dt, &yflash);
 	}
 }
    void LIFNetwork::feedForward(const std::vector<double>& input) 
@@ -27,7 +27,10 @@ LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf,
            return;
        }
 
-       m_layers[0].updateLayer(input);
+	   
+	   m_layers[0].updateLayer(input, 0);
+
+       
        
        for (size_t l = 0; l < m_layers.size() - 1; ++l)
 	   {
@@ -42,7 +45,7 @@ LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf,
    }
    void LIFNetwork::printNetworkState(int timestep) const
    {
-	   std::cout << "Time Step: " << timestep << " | Network Type: " << m_networkType << std::endl;
+	   std::cout << "Time Step: " << timestep << " | Network Type: " << "feedforward" << std::endl;
 	   for (size_t l = 0; l < m_layers.size(); ++l) {
 		   std::cout << "Layer " << l << ":" << std::endl;
 		   for (size_t i = 0; i < m_layers[l].getLayerSize(); ++i) {
