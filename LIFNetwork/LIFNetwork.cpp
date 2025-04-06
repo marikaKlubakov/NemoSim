@@ -3,12 +3,12 @@
 #include <random>
 #include <string>
 #include <fstream>
-#include "LIFNetwork.h"
+#include "LIFNetwork.hpp"
 
 //implementation of LIFNetwork class
 
-LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_, const std::string& type)
-       : m_VDD(VDD_), m_dt(dt_), m_networkType(type)
+LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_)
+       : m_VDD(VDD_), m_dt(dt_)
 {
 	for (int size : layerSizes)
 	{
@@ -42,10 +42,12 @@ LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf,
    }
    void LIFNetwork::printNetworkState(int timestep) const
    {
-	   std::cout << "Time Step: " << timestep << " | Network Type: " << m_networkType << std::endl;
-	   for (size_t l = 0; l < m_layers.size(); ++l) {
+	   std::cout << "Time Step: " << timestep << std::endl;
+	   for (size_t l = 0; l < m_layers.size(); ++l)
+	   {
 		   std::cout << "Layer " << l << ":" << std::endl;
-		   for (size_t i = 0; i < m_layers[l].getLayerSize(); ++i) {
+		   for (size_t i = 0; i < m_layers[l].getLayerSize(); ++i) 
+		   {
 			   std::cout << "  Neuron " << i << " Vm: " << m_layers[l].getVm(i);
 			   if (m_layers[l].hasSpiked(i)) std::cout << " (Spiked)";
 			   std::cout << std::endl;
@@ -58,17 +60,52 @@ LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf,
    void LIFNetwork::printNetworkToFile()
    {
 	   std::vector<double> vms = m_layers[0].getVms(0);
+	   std::vector<double> Iin = m_layers[0].getIinVec(0);
+	   std::vector<double> vout = m_layers[0].getVoutVec(0);
 
 	   std::ofstream outputFile("../vms.txt");
-	   if (outputFile.is_open()) {
-		   for (const auto& value : vms) {
+	   std::ofstream outputFile2("../Iins.txt");
+	   std::ofstream outputFile3("../Vouts.txt");
+	   if (outputFile.is_open()) 
+	   {
+		   for (const auto& value : vms) 
+		   {
 			   outputFile << value << std::endl;
 		   }
 		   outputFile.close();
 		   std::cout << "Values successfully written to file: " << "../vms.txt" << std::endl;
 	   }
-	   else {
+	   else 
+	   {
 		   std::cerr << "Error opening file: " << "../vms.txt" << std::endl;
+	   }
+
+	   if (outputFile2.is_open()) 
+	   {
+		   for (const auto& value : Iin) 
+		   {
+			   outputFile2 << value << std::endl;
+		   }
+		   outputFile2.close();
+		   std::cout << "Values successfully written to file: " << "../Iins.txt" << std::endl;
+	   }
+	   else 
+	   {
+		   std::cerr << "Error opening file: " << "../Iins.txt" << std::endl;
+	   }
+
+	   if (outputFile3.is_open()) 
+	   {
+		   for (const auto& value : vout) 
+		   {
+			   outputFile3 << value << std::endl;
+		   }
+		   outputFile3.close();
+		   std::cout << "Values successfully written to file: " << "../Vouts.txt" << std::endl;
+	   }
+	   else 
+	   {
+		   std::cerr << "Error opening file: " << "../Vouts.txt" << std::endl;
 	   }
    }
  

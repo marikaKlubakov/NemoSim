@@ -2,7 +2,7 @@
 #include <vector>
 #include <random>
 #include <string>
-#include "LIFLayer.h"
+#include "LIFLayer.hpp"
 
 //implementation of LIFLayer class
 
@@ -21,9 +21,11 @@ void LIFLayer::initializeWeights(int nextLayerSize)
    std::random_device rd;
    std::mt19937 gen(rd());
    std::uniform_real_distribution<double> dist(-1.0, 1.0);
-   for (auto& row : m_weights) {
+   for (auto& row : m_weights)
+   {
 	   row.resize(nextLayerSize);
-	   for (double& w : row) {
+	   for (double& w : row) 
+	   {
 		   w = dist(gen);
 	   }
    }

@@ -8,8 +8,8 @@ macro(set_source_group VARIABLE GROUP_NAME)
 	source_group(${GROUP_NAME} FILES ${${VARIABLE}})
 endmacro()
 
-set_source_group(SOURCES "Source Files" LIF_neuron.cpp LIFLayer.cpp LIFNetwork.cpp main.cpp )
-set_source_group(HEADERS "Header Files" LIF_neuron.h LIFLayer.h LIFNetwork.h )
+set_source_group(SOURCES "Source Files" LIFNeuron.cpp LIFLayer.cpp LIFNetwork.cpp main.cpp )
+set_source_group(HEADERS "Header Files" LIFNeuron.hpp LIFLayer.hpp LIFNetwork.hpp )
 
 add_executable(LIFNetworkSimulation ${SOURCES} ${HEADERS})
 

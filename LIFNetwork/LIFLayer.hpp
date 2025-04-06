@@ -2,10 +2,11 @@
 #include <vector>
 #include <random>
 #include <string>
-#include "LIF_neuron.h"
+#include "LIFNeuron.hpp"
 
 // --------- LIF Layer Definition ---------
-class LIFLayer {
+class LIFLayer 
+{
 
 public:
   
@@ -16,6 +17,8 @@ public:
    void step(std::vector<double>& nextInputs);
    double getVm(int index) const { return m_neurons[index].getVm(); }
    std::vector<double> getVms(int index) const { return m_neurons[index].getVms(); }
+   std::vector<double> getIinVec(int index) const { return m_neurons[index].getIinVec(); }
+   std::vector<double> getVoutVec(int index) const { return m_neurons[index].getVoutVec(); }
    bool hasSpiked(int index) const { return m_neurons[index].hasSpiked(); }
 private:
 	std::vector<LIFNeuron> m_neurons;
