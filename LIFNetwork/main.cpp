@@ -4,6 +4,11 @@
 #include <string>
 #include <cmath>
 
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <cmath>
+
 #include <windows.h>
 
 #include <corecrt_math_defines.h>
@@ -13,15 +18,16 @@
 // --------- Main Simulation ---------
 int main(int argc, char* argv[])
 {
-	if (argc < 2) {
-		std::cerr << "Usage: " << argv[0] << " <XML configuration file>" << std::endl;
+	if (argc < 3) {
+		std::cerr << "Usage: " << argv[0] << " <XML configuration file>" << " <data input file>" << std::endl;
 		return 1;
 	}
 
 	std::string xmlFile = argv[1];
+	std::string dataInputFile = argv[2];
 	NetworkParameters params;
 	XMLParser parser;
-	MessageBox(NULL, "Hello, World!", "Message Box", MB_OK);
+	//MessageBox(NULL, "Hello, World!", "Message Box", MB_OK);
 	// Parse the XML file to get network parameters
 	if (!parser.parse(xmlFile, params)) {
 		std::cerr << "Failed to parse network configuration." << std::endl;
@@ -31,25 +37,27 @@ int main(int argc, char* argv[])
 	LIFNetwork* network = LIFEngine::createNetwork(params);
 	if (!network) return 1;
 
-	// Parameters for sine wave
-	double frequency = 50;  // Hz
-	double amplitude = 100e-12; // 100 pA
-	double timeStep = 0.0001; // Smaller time step for better resolution
-	double time = 0.0;
-	int numSteps = 20000; // Number of steps to cover 2 seconds
 
-	// Simulate with sine wave input
-	for (int t = 0; t < numSteps; ++t)
-	{
-		std::vector<double> input(params.layerSizes[0]);
-		for (size_t i = 0; i < input.size(); ++i)
-		{
-			input[i] = amplitude + amplitude * std::sin(2 * M_PI * frequency * time + M_PI * 1.5);
-		}
+	//std::ofstream outFile("sine_wave_input.txt");
+
+	std::ifstream inputFile(dataInputFile);
+		std::string line;
+
+		if (inputFile.is_open()) {
+		while (std::getline(inputFile, line)) {
+		double value = std::stod(line); // Convert string to double
+		std::vector<double> input;
+		input.push_back(value);
 		network->feedForward(input);
+		}
+		inputFile.close();
+		} else {
+		std::cerr << "Unable to open file" << std::endl;
+		}
 
-		time += timeStep;
-	}
+
+		inputFile.close();
+
 	network->printNetworkToFile();
 	delete network;
 

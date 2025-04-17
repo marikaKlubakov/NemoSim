@@ -7,7 +7,8 @@ exe_path = os.path.join(os.getcwd(),"..\\LIFNetworkSimulation.exe")
 print(f"start")
 # Hard-code the list of XML files
 xml_files = [
-    "./SNN/LIF/test1.xml"
+    "../Tests/SNN/LIF/test1/test.xml",
+    "../Tests/SNN/LIF/test2/test.xml"
     # Add more files as needed
 ]
 
@@ -21,7 +22,7 @@ for xml_path in xml_files:
 
     print(f"Preparing to run executable for {xml_file}...")
     try:
-        result = subprocess.run([exe_path, xml_file])
+        result = subprocess.run([exe_path, xml_file, "input.txt"])
         print(f"Finished running {xml_file}:")
         print("Output:", result.stdout)
         print("Error:", result.stderr)
