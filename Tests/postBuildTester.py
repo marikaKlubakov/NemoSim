@@ -1,8 +1,9 @@
 import subprocess
-
+import sys
 import os
 
 # Define the path to the executable
+curr_WD = os.getcwd()
 exe_path = os.path.join(os.getcwd(),"..\\LIFNetworkSimulation.exe")
 print(f"start")
 # Hard-code the list of XML files
@@ -31,5 +32,6 @@ for xml_path in xml_files:
     except Exception as e:
         print(f"An error occurred: {e}")
     print("-" * 40)
-
+    os.chdir(curr_WD)
 print("All tasks completed.")
+sys.exit(0)  # Ensure clean exit

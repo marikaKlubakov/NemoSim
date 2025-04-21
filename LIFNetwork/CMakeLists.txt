@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 4.0)
 
 project(LIFNetworkSimulation
         LANGUAGES C CXX)
@@ -38,3 +38,11 @@ if (MSVC)
 else()
     set_target_properties(LIFNetworkSimulation PROPERTIES RUNTIME_OUTPUT_DIRECTORY "../")
 endif()
+
+
+add_custom_command(
+    TARGET LIFNetworkSimulation
+    POST_BUILD
+    COMMAND python ../Tests/postBuildTester.py
+)
+
