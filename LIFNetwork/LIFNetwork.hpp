@@ -3,6 +3,7 @@
 #include <random>
 #include <string>
 #include "LIFLayer.hpp"
+#include "../XMLParser.hpp"
 
 // --------- LIF Network Definition ---------
 class LIFNetwork 
@@ -24,10 +25,8 @@ private:
 class LIFEngine 
 {
 public:
-   static LIFNetwork* createNetwork( const std::vector<int>& layerSizes) 
+   static LIFNetwork* createNetwork(NetworkParameters params)
    {
-       double Cm = 1e-12, Cf = 0.01e-12, Vth = 0.6, VDD = 5.0, dt = 0.01;
-
-       return new LIFNetwork(layerSizes, Cm, Cf, Vth, VDD, dt);
+       return new LIFNetwork(params.layerSizes, params.Cm, params.Cf, params.VTh, params.VDD, params.dt);
    }
 };
