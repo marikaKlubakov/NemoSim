@@ -63,9 +63,9 @@ LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf,
 	   std::vector<double> Iin = m_layers[0].getIinVec(0);
 	   std::vector<double> vout = m_layers[0].getVoutVec(0);
 
-	   std::ofstream outputFile("../vms.txt");
-	   std::ofstream outputFile2("../Iins.txt");
-	   std::ofstream outputFile3("../Vouts.txt");
+	   std::ofstream outputFile("vms.txt");
+	   std::ofstream outputFile2("Iins.txt");
+	   std::ofstream outputFile3("Vouts.txt");
 	   if (outputFile.is_open()) 
 	   {
 		   for (const auto& value : vms) 
@@ -73,11 +73,11 @@ LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf,
 			   outputFile << value << std::endl;
 		   }
 		   outputFile.close();
-		   std::cout << "Values successfully written to file: " << "../vms.txt" << std::endl;
+		   std::cout << "Values successfully written to file: " << "vms.txt" << std::endl;
 	   }
 	   else 
 	   {
-		   std::cerr << "Error opening file: " << "../vms.txt" << std::endl;
+		   std::cerr << "Error opening file: " << "vms.txt" << std::endl;
 	   }
 
 	   if (outputFile2.is_open()) 
@@ -87,11 +87,11 @@ LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf,
 			   outputFile2 << value << std::endl;
 		   }
 		   outputFile2.close();
-		   std::cout << "Values successfully written to file: " << "../Iins.txt" << std::endl;
+		   std::cout << "Values successfully written to file: " << "Iins.txt" << std::endl;
 	   }
 	   else 
 	   {
-		   std::cerr << "Error opening file: " << "../Iins.txt" << std::endl;
+		   std::cerr << "Error opening file: " << "Iins.txt" << std::endl;
 	   }
 
 	   if (outputFile3.is_open()) 
@@ -101,11 +101,11 @@ LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf,
 			   outputFile3 << value << std::endl;
 		   }
 		   outputFile3.close();
-		   std::cout << "Values successfully written to file: " << "../Vouts.txt" << std::endl;
+		   std::cout << "Values successfully written to file: " << "Vouts.txt" << std::endl;
 	   }
 	   else 
 	   {
-		   std::cerr << "Error opening file: " << "../Vouts.txt" << std::endl;
+		   std::cerr << "Error opening file: " << "Vouts.txt" << std::endl;
 	   }
    }
  
