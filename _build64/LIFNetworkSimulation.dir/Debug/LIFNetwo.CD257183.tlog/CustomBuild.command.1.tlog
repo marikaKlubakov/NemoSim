@@ -1,0 +1,10 @@
+^C:\GIT19\NEMOSIM\LIFNETWORK\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/git19/NemoSim/LIFNetwork -BC:/git19/NemoSim/_build64 --check-stamp-file C:/git19/NemoSim/_build64/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
