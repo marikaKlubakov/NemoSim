@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\git19\NemoSim\_build64\CMakeFiles\f36c7ff162f7bc64fe64b48771de4f25\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{3B338FFB-35B8-3473-B85B-1D16A0AE4174}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

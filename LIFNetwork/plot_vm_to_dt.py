@@ -7,37 +7,31 @@ def read_values(filename):
         values = [float(line.strip()) for line in file]
     return values
 
-def plot_values_over_time(current_values, vm_values, vout_values, dt=0.01, duration=50):
+def plot_values_over_time(current_values, vm_values, vout_values, dt=0.001):
     time = np.arange(0, len(current_values) * dt, dt)
-    
-    # Limit the time and values to the specified duration
-    limit = int(duration / dt)
-    time = time[:limit]
-    current_values = current_values[:limit]
-    vm_values = vm_values[:limit]
-    vout_values = vout_values[:limit]
+    time2 = np.arange(0, len(current_values) * dt, dt)
     
     plt.figure(figsize=(12, 8))
     
     plt.subplot(3, 1, 1)
-    plt.plot(time, current_values)
+    plt.plot(time2, current_values)
     plt.xlabel('Time (s)')
     plt.ylabel('Current (I_in)')
-    plt.title('Input Current Over Time (First 2 Seconds)')
+    plt.title('Input Current Over Time')
     plt.grid(True)
     
     plt.subplot(3, 1, 2)
     plt.plot(time, vm_values)
     plt.xlabel('Time (s)')
     plt.ylabel('Membrane Potential (Vm)')
-    plt.title('Membrane Potential Over Time (First 2 Seconds)')
+    plt.title('Membrane Potential Over Time')
     plt.grid(True)
     
     plt.subplot(3, 1, 3)
     plt.plot(time, vout_values)
     plt.xlabel('Time (s)')
     plt.ylabel('Output Voltage (Vout)')
-    plt.title('Output Voltage Over Time (First 2 Seconds)')
+    plt.title('Output Voltage Over Time')
     plt.grid(True)
     
     plt.tight_layout()

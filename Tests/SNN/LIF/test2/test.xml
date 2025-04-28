@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NetworkConfig>
+    <Global>
+        <Cm>1.0e-12</Cm>
+        <Cf>0.01e-12</Cf>
+        <VDD>0.76</VDD>
+        <VTh>0.65</VTh>
+        <dt>0.001</dt>
+    </Global>
+    <YFlash>
+        <gm>1.0e-6</gm>
+        <req>1.0e6</req>
+        <CGBr>1.0e-12</CGBr>
+        <CGBi>1.0e-12</CGBi>
+        <CGSr>1.0e-12</CGSr>
+        <CGSi>1.0e-12</CGSi>
+        <CGDr>1.0e-12</CGDr>
+        <CGDi>1.0e-12</CGDi>
+        <CDBr>1.0e-12</CDBr>
+        <CDBi>1.0e-12</CDBi>
+        <CMOS>1.0e-12</CMOS>
+    </YFlash>
+    <Architecture>
+        <Layer size="1"/>
+    </Architecture>
+</NetworkConfig>

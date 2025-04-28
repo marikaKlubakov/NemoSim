@@ -6,7 +6,7 @@
 class LIFNeuron 
 {
 private:
-   double m_Cm, m_Cf, m_Vth, m_VDD, m_Vm, m_beta, m_dt, m_IR;
+   double m_Cm, m_Cf, m_Vth, m_VDD, m_Vm, m_beta, m_dt, m_IR, m_lastVout;
    bool m_spiked;
    std::vector<double> m_vms; 
    std::vector<double> m_Iin;

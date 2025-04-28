@@ -7,7 +7,3 @@ if not exist %CMAKE_PATH% (
 
 %CMAKE_PATH% --build _build64 --target LIFNetworkSimulation --config Debug
 :end
-
-
-
-
