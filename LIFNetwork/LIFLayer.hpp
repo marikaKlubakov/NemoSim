@@ -7,10 +7,8 @@
 // --------- LIF Layer Definition ---------
 class LIFLayer 
 {
-
 public:
-  
-   LIFLayer(int numNeurons, double Cm, double Cf, double Vth, double VDD, double dt) ;
+   LIFLayer(int numNeurons, double Cm, double Cf, double Vth, double VDD, double dt, double IR);
    void initializeWeights(int nextLayerSize) ;
    unsigned int getLayerSize() const;
    void updateLayer(const std::vector<double>& input);

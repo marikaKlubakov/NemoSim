@@ -1,26 +1,24 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
+set(CMAKE_C_COMPILER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe")
+set(CMAKE_CXX_COMPILER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe")
 
-project(LIFNetworkSimulation
-		LANGUAGES C CXX)
+project(LIFNetwork LANGUAGES C CXX)
 
-macro(set_source_group VARIABLE GROUP_NAME)
-	set(${VARIABLE} ${ARGN})
-	source_group(${GROUP_NAME} FILES ${${VARIABLE}})
-endmacro()
+set(SOURCES 
+    LIFNeuron.cpp
+    LIFLayer.cpp
+    LIFNetwork.cpp
+)
 
-set_source_group(SOURCES "Source Files" LIFNeuron.cpp LIFLayer.cpp LIFNetwork.cpp main.cpp )
-set_source_group(HEADERS "Header Files" LIFNeuron.hpp LIFLayer.hpp LIFNetwork.hpp )
+set(HEADERS 
+    LIFNeuron.hpp
+    LIFLayer.hpp
+    LIFNetwork.hpp
+)
 
-add_executable(LIFNetworkSimulation ${SOURCES} ${HEADERS})
+# Create a static library instead of a shared one
+add_library(LIFNetwork STATIC ${SOURCES} ${HEADERS})
 
-if(UNIX)
-	target_link_libraries(LIFNetworkSimulation PRIVATE dl pthread -static-libgcc -static-libstdc++)
-endif()
+# Allow NEMOSIM to use LIFNetwork headers
+target_include_directories(LIFNetwork PUBLIC ${CMAKE_SOURCE_DIR}/LIFNetwork)
 
-if ( MSVC )
-    set_target_properties( LIFNetworkSimulation PROPERTIES RUNTIME_OUTPUT_DIRECTORY "../")
-    set_target_properties( LIFNetworkSimulation PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "../")
-    set_target_properties( LIFNetworkSimulation PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "../")
-else()
-    set_target_properties( LIFNetworkSimulation PROPERTIES RUNTIME_OUTPUT_DIRECTORY "../")
-endif ()
