@@ -4,17 +4,20 @@
 #include <string>
 #include "LIFLayer.hpp"
 
+struct NetworkParameters
+{
+	double Cm, Cf, VDD, VTh, dt, IR;
+	double gm, req, CGBr, CGBi, CGSr, CGSi, CGDr, CGDi, CDBr, CDBi, CMOS;
+	std::vector<int> layerSizes;
+};
 // --------- LIF Network Definition ---------
 class LIFNetwork 
 {
-
 public:
-   LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_);
-
+   LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_, double IR_);
    void feedForward(const std::vector<double>& input) ;
    void printNetworkState(int timestep) const ;
    void printNetworkToFile();
-
 private:
 	std::vector<LIFLayer> m_layers;
 	double m_VDD, m_dt;
@@ -24,10 +27,8 @@ private:
 class LIFEngine 
 {
 public:
-   static LIFNetwork* createNetwork( const std::vector<int>& layerSizes) 
+   static LIFNetwork* createNetwork(NetworkParameters params)
    {
-       double Cm = 1e-12, Cf = 0.01e-12, Vth = 0.6, VDD = 5.0, dt = 0.01;
-
-       return new LIFNetwork(layerSizes, Cm, Cf, Vth, VDD, dt);
+       return new LIFNetwork(params.layerSizes, params.Cm, params.Cf, params.VTh, params.VDD, params.dt, params.IR);
    }
 };
