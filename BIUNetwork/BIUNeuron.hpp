@@ -1,24 +1,27 @@
 #ifndef SPIKINGNEURON_H
 #define SPIKINGNEURON_H
 
+
 #include <vector>
-
-class SpikingNeuron {
-private:
-	double Vn;           // Neuron membrane voltage
-	double VTH;          // Voltage threshold for spike
-	double VDD;          // Supply voltage
-	int refractoryTime;  // Number of cycles for refractory period
-	int cyclesLeft;      // Remaining refractory cycles
-	double Cn, Ctotal;   // Capacitances
-	std::vector<double> synapticWeights;
-	std::vector<double> synapticInputs;
-
+class SpikingNeuron
+{
 public:
-	SpikingNeuron(double vth, double vdd, int refractory, double cn, double ctotal, std::vector<double> weights);
-	void setSynapticInputs(const std::vector<double>& inputs);
-	bool update();
-	double getVoltage() const;
+    SpikingNeuron(double vth, double vdd, int refractory, double cn,
+        double cl, double cu, std::vector<double> weights);
+    void setSynapticInputs(const std::vector<double>& inputs);
+    bool update();
+    double getVoltage() const;
+private:
+    double VTH;
+    double VDD;
+    int refractoryTime;
+    double Cn;
+    double Cl;
+    double Cu;
+    double Vn;
+    int cyclesLeft;
+    std::vector<double> synapticWeights;
+    std::vector<double> synapticInputs;
 };
 
 #endif // SPIKINGNEURON_H

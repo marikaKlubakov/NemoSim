@@ -3,58 +3,53 @@
 #include <iostream>
 #include <unordered_map>
 
-bool XMLParser::parse(const std::string& filename, NetworkParameters& params) {
+bool XMLParser::parse(const std::string& filename, NetworkParameters& params)
+{
     using namespace tinyxml2;
     XMLDocument doc;
 
     // Load XML file
-    if (doc.LoadFile(filename.c_str()) != XML_SUCCESS) {
+    if (doc.LoadFile(filename.c_str()) != XML_SUCCESS)
+    {
         std::cerr << "Error loading XML file: " << doc.ErrorStr() << std::endl;
         return false;
     }
 
     auto* root = doc.FirstChildElement("NetworkConfig");
-    if (!root) {
+    if (!root)
+    {
         std::cerr << "Error: No root element found in XML." << std::endl;
         return false;
     }
 
     // Identify network type dynamically
     const char* networkType = root->Attribute("type");
-    if (!networkType) {
+    if (!networkType)
+    {
         std::cerr << "Error: Network type not specified." << std::endl;
         return false;
     }
 
     std::cout << "Parsing network type: " << networkType << std::endl;
 
-    // Use a map to store parameters dynamically
-    std::unordered_map<std::string, double> parsedParams;
-
     // Parse Global Parameters (common across networks)
     auto* global = root->FirstChildElement("Global");
-    if (global) {
-        for (auto* elem = global->FirstChildElement(); elem != nullptr; elem = elem->NextSiblingElement()) {
-            parsedParams[elem->Name()] = std::stod(elem->GetText());
-        }
-    }
-
-    // Parse Network-Specific Parameters
-    auto* networkConfig = root->FirstChildElement(networkType);
-    if (networkConfig) {
-        for (auto* elem = networkConfig->FirstChildElement(); elem != nullptr; elem = elem->NextSiblingElement()) {
-            parsedParams[elem->Name()] = std::stod(elem->GetText());
-        }
-    }
-    else {
-        std::cerr << "Error: No configuration found for network type " << networkType << std::endl;
-        return false;
+    if (global)
+    {
+        global->FirstChildElement("Cm")->QueryDoubleText(&params.Cm);
+        global->FirstChildElement("Cf")->QueryDoubleText(&params.Cf);
+        global->FirstChildElement("VDD")->QueryDoubleText(&params.VDD);
+        global->FirstChildElement("VTh")->QueryDoubleText(&params.VTh);
+        global->FirstChildElement("dt")->QueryDoubleText(&params.dt);
+        global->FirstChildElement("IR")->QueryDoubleText(&params.IR);
     }
 
     // Parse Architecture (Layer Sizes)
     auto* arch = root->FirstChildElement("Architecture");
-    if (arch) {
-        for (auto* layer = arch->FirstChildElement("Layer"); layer != nullptr; layer = layer->NextSiblingElement("Layer")) {
+    if (arch)
+    {
+        for (auto* layer = arch->FirstChildElement("Layer"); layer != nullptr; layer = layer->NextSiblingElement("Layer"))
+        {
             int size;
             layer->QueryIntAttribute("size", &size);
             params.layerSizes.push_back(size);
@@ -63,11 +58,28 @@ bool XMLParser::parse(const std::string& filename, NetworkParameters& params) {
 
     // Print parsed parameters for debugging
     std::cout << "Parsed Parameters:\n";
-    for (const std::pair<const std::string, double>& param : parsedParams) {
-        std::cout << param.first << " = " << param.second << std::endl;
+    std::cout << "Cm = " << params.Cm << "\n";
+    std::cout << "Cf = " << params.Cf << "\n";
+    std::cout << "VDD = " << params.VDD << "\n";
+    std::cout << "VTh = " << params.VTh << "\n";
+    std::cout << "dt = " << params.dt << "\n";
+    std::cout << "gm = " << params.gm << "\n";
+    std::cout << "req = " << params.req << "\n";
+    std::cout << "CGBr = " << params.CGBr << "\n";
+    std::cout << "CGBi = " << params.CGBi << "\n";
+    std::cout << "CGSr = " << params.CGSr << "\n";
+    std::cout << "CGSi = " << params.CGSi << "\n";
+    std::cout << "CGDr = " << params.CGDr << "\n";
+    std::cout << "CGDi = " << params.CGDi << "\n";
+    std::cout << "CDBr = " << params.CDBr << "\n";
+    std::cout << "CDBi = " << params.CDBi << "\n";
+    std::cout << "CMOS = " << params.CMOS << "\n";
+    for (const int& size : params.layerSizes)
+    {
+        std::cout << "Layer size = " << size << "\n";
     }
-
 
     std::cout << "Parsing completed for " << networkType << " network." << std::endl;
     return true;
 }
+

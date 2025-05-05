@@ -4,7 +4,8 @@
 #include <vector>
 #include <string>
 #include "LIFNetwork.hpp"
-class XMLParser {
+class XMLParser
+{
 public:
 	static bool parse(const std::string& filename, NetworkParameters& params);
 };

@@ -4,7 +4,7 @@ import os
 
 # Define the path to the executable
 curr_WD = os.getcwd()
-exe_path = os.path.join(os.getcwd(),"..\\LIFNetworkSimulation.exe")
+exe_path = os.path.join(os.getcwd(),"..\\_build64\\Debug\\NEMOSIM.exe")
 print(f"start")
 # Hard-code the list of XML files
 xml_files = [

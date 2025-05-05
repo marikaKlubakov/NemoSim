@@ -42,6 +42,7 @@ target_link_libraries(NEMOSIM PRIVATE tinyxml2::tinyxml2 LIFNetwork)
 # Ensure correct output naming
 set_target_properties(NEMOSIM PROPERTIES OUTPUT_NAME "NEMOSIM")
 
+
 # Post-build command
 add_custom_command(
     TARGET NEMOSIM

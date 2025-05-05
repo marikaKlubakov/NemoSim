@@ -6,14 +6,14 @@
 
 //implementation of LIFLayer class
 
-LIFLayer:: LIFLayer(int numNeurons, double Cm, double Cf, double Vth, double VDD, double dt) 
+LIFLayer:: LIFLayer(int numNeurons, double Cm, double Cf, double Vth, double VDD, double dt, double IR)
 {
    m_neurons.reserve(numNeurons);
    m_weights.resize(numNeurons);
    for (int i = 0; i < numNeurons; ++i)
-	{
-	   m_neurons.emplace_back(Cm, Cf, Vth, VDD, dt);
-	}
+   {
+	   m_neurons.emplace_back(Cm, Cf, Vth, VDD, dt, IR);
+   }
 }
 
 void LIFLayer::initializeWeights(int nextLayerSize)

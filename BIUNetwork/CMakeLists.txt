@@ -21,4 +21,3 @@ add_library(BIUNetwork STATIC ${SOURCES} ${HEADERS})
 
 # Allow NEMOSIM to use BIUNetwork headers
 target_include_directories(BIUNetwork PUBLIC ${CMAKE_SOURCE_DIR}/BIUNetwork)
-
