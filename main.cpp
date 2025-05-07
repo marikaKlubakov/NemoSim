@@ -4,8 +4,6 @@
 #include <string>
 #include <cmath>
 #include <fstream>
-#include <windows.h>
-#include <corecrt_math_defines.h>
 #include "XMLParser.hpp"
 
 // --------- Main Simulation ---------

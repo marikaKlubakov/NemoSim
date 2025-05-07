@@ -18,26 +18,23 @@ add_subdirectory(LIFNetwork)
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/LIFNetwork)
-include_directories(../vcpkg/installed/x64-windows/include)
+include_directories(${CMAKE_SOURCE_DIR})
 
 # Define the main executable
 set(SOURCES 
     main.cpp
     XMLParser.cpp
+    tinyxml2.cpp
 )
 
 set(HEADERS 
+    tinyxml2.h    
     XMLParser.hpp
 )
 
 add_executable(NEMOSIM ${SOURCES} ${HEADERS})
 
-# Integrate vcpkg
-set(CMAKE_TOOLCHAIN_FILE "../vcpkg/scripts/buildsystems/vcpkg.cmake")
-
-# Find and link TinyXML-2
-find_package(tinyxml2 CONFIG REQUIRED)
-target_link_libraries(NEMOSIM PRIVATE tinyxml2::tinyxml2 LIFNetwork)
+target_link_libraries(NEMOSIM PRIVATE LIFNetwork)
 
 # Ensure correct output naming
 set_target_properties(NEMOSIM PROPERTIES OUTPUT_NAME "NEMOSIM")
