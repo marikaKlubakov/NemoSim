@@ -14,10 +14,11 @@ endif()
 
 # Add subdirectories
 add_subdirectory(LIFNetwork)
-#add_subdirectory(BIUNetwork)
+add_subdirectory(BIUNetwork)
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/LIFNetwork)
+include_directories(${CMAKE_SOURCE_DIR}/BIUNetwork)
 include_directories(${CMAKE_SOURCE_DIR})
 
 # Define the main executable
@@ -25,24 +26,22 @@ set(SOURCES
     main.cpp
     XMLParser.cpp
     tinyxml2.cpp
+    NEMOEngine.cpp
 )
 
 set(HEADERS 
     tinyxml2.h    
     XMLParser.hpp
+    networkParams.hpp
+    NEMOEngine.hpp
 )
 
 add_executable(NEMOSIM ${SOURCES} ${HEADERS})
 
-target_link_libraries(NEMOSIM PRIVATE LIFNetwork)
+target_link_libraries(NEMOSIM PRIVATE LIFNetwork BIUNetwork)
 
 # Ensure correct output naming
 set_target_properties(NEMOSIM PROPERTIES OUTPUT_NAME "NEMOSIM")
 
 
 # Post-build command
-add_custom_command(
-    TARGET NEMOSIM
-    POST_BUILD
-    COMMAND python ../Tests/postBuildTester.py
-)

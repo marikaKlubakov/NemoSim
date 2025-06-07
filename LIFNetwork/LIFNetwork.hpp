@@ -1,15 +1,14 @@
 #include <iostream>
+
+#ifndef LIFNETWORK_HPP
+#define LIFNETWORK_HPP
+
 #include <vector>
 #include <random>
 #include <string>
 #include "LIFLayer.hpp"
+#include "../networkParams.hpp"
 
-struct NetworkParameters
-{
-	double Cm, Cf, VDD, VTh, dt, IR;
-	double gm, req, CGBr, CGBi, CGSr, CGSi, CGDr, CGDi, CDBr, CDBi, CMOS;
-	std::vector<int> layerSizes;
-};
 // --------- LIF Network Definition ---------
 class LIFNetwork 
 {
@@ -23,12 +22,4 @@ private:
 	double m_VDD, m_dt;
 	std::vector<double> vms;
 };
-// --------- LIF Engine (Main Controller) ---------
-class LIFEngine 
-{
-public:
-   static LIFNetwork* createNetwork(NetworkParameters params)
-   {
-       return new LIFNetwork(params.layerSizes, params.Cm, params.Cf, params.VTh, params.VDD, params.dt, params.IR);
-   }
-};
+#endif

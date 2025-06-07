@@ -9,5 +9,5 @@ rem Generate Visual Studio solution with the correct executable name
 %CMAKE_PATH% ./ -B_build64 -G "Visual Studio 16 2019" -T host=x64
 
 rem Build the NEMOSIM executable
-%CMAKE_PATH% --build _build64 --target NEMOSIM --config Debug
+%CMAKE_PATH% --build _build64 --target NEMOSIM --config Release
 :end

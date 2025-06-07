@@ -1,3 +1,7 @@
+
+#ifndef LIFLAYER_HPP
+#define LIFLAYER_HPP
+
 #include <iostream>
 #include <vector>
 #include <random>
@@ -22,3 +26,4 @@ private:
 	std::vector<LIFNeuron> m_neurons;
 	std::vector<std::vector<double>> m_weights;
 };
+#endif
