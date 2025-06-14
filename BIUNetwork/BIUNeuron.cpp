@@ -20,7 +20,7 @@ bool BIUNeuron::update()
     m_Vn.emplace_back(Vn);
     if (cyclesLeft > 0)
     {
-        Vn = VDD / 2;
+        Vn = 0;
         cyclesLeft--;
         m_spikes.emplace_back(0);
         return false;
@@ -39,7 +39,7 @@ bool BIUNeuron::update()
 
     if (Vn >= VTH)
     {
-        Vn = VDD / 2;
+        Vn = 0;
         cyclesLeft = refractoryTime;
 		m_spikes.emplace_back(1);
         return true;

@@ -7,7 +7,7 @@ def read_values(filename):
         values = [float(line.strip()) for line in file]
     return values
 
-def plot_values_over_time(vn_values, vout_values, Vins_values, dt=0.000000001):
+def plot_values_over_time(vn_values, vout_values, Vins_values, dt=0.0000001):
     time = np.arange(0, len(vn_values) * dt, dt)
     time2 = np.arange(0, len(vn_values) * dt, dt)
     
@@ -21,7 +21,7 @@ def plot_values_over_time(vn_values, vout_values, Vins_values, dt=0.000000001):
     plt.grid(True)
     
     plt.subplot(3, 1, 2)
-    plt.plot(time, vout_values)
+    plt.step(time, vout_values)
     plt.xlabel('Time (s)')
     plt.ylabel('Spikes')
     plt.title('Potential Over Time')
