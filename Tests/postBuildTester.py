@@ -9,7 +9,8 @@ print(f"start")
 # Hard-code the list of XML files
 xml_files = [
     "../Tests/SNN/LIF/sin_current_test/test.xml",
-    "../Tests/SNN/LIF/step_current_test/test.xml"
+    "../Tests/SNN/LIF/step_current_test/test.xml",
+    "../Tests/SNN/BIU/test.xml"
     # Add more files as needed
 ]
 

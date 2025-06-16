@@ -1,3 +1,7 @@
+
+#ifndef LIFNEURON_HPP
+#define LIFNEURON_HPP
+
 #include <iostream>
 #include <vector>
 #include <random>
@@ -21,3 +25,4 @@ private:
 	std::vector<double> m_Iin;
 	std::vector<double> m_vout;
 };
+#endif
