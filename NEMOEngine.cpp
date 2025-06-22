@@ -14,7 +14,7 @@ NEMOEngine::NEMOEngine(NetworkParameters params)
 
 void NEMOEngine::createLIFNetwork(NetworkParameters params)
 {
-    lifnetwork = new LIFNetwork(params.layerSizes, params.Cm, params.Cf, params.VTh, params.VDD, params.dt, params.IR);
+    lifnetwork = new LIFNetwork(params.layerSizes, params.Cm, params.Cf, params.VTh, params.VDD, params.dt, params.IR, params.YFlashWeights);
 }
 
 void NEMOEngine::createBIUNetwork(NetworkParameters params)

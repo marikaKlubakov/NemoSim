@@ -15,10 +15,12 @@ endif()
 # Add subdirectories
 add_subdirectory(LIFNetwork)
 add_subdirectory(BIUNetwork)
+add_subdirectory(YFlash)
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/LIFNetwork)
 include_directories(${CMAKE_SOURCE_DIR}/BIUNetwork)
+include_directories(${CMAKE_SOURCE_DIR}/YFlash)
 include_directories(${CMAKE_SOURCE_DIR})
 
 # Define the main executable
@@ -38,7 +40,7 @@ set(HEADERS
 
 add_executable(NEMOSIM ${SOURCES} ${HEADERS})
 
-target_link_libraries(NEMOSIM PRIVATE LIFNetwork BIUNetwork)
+target_link_libraries(NEMOSIM PRIVATE LIFNetwork BIUNetwork YFlash) #ANNNetwork)
 
 # Ensure correct output naming
 set_target_properties(NEMOSIM PROPERTIES OUTPUT_NAME "NEMOSIM")

@@ -102,6 +102,32 @@ bool XMLParser::parse(const std::string& filename, NetworkParameters& params) {
                std::cerr << "Warning: Missing or invalid 'size' in LIF <Layer>\n";
        }
    }
+
+   auto* YFlash = arch->FirstChildElement("YFlash");
+   if (arch && YFlash)
+   {
+	   auto* weightsElem = YFlash->FirstChildElement("weights");
+	   std::vector<std::vector<double>> layerWeights;
+	   if (weightsElem) {
+		   for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row")) {
+			   const char* rowText = rowElem->GetText();
+			   if (!rowText) {
+				   std::cerr << "Warning: Empty <row> in weights\n";
+				   continue;
+			   }
+			   std::istringstream iss(rowText);
+			   std::vector<double> rowWeights;
+			   double w;
+			   while (iss >> w)
+				   rowWeights.push_back(w);
+			   layerWeights.push_back(rowWeights);
+		   }
+	   }
+	   else {
+		   std::cerr << "Warning: <weights> element missing in <synapses>\n";
+	   }
+	   params.YFlashWeights.push_back(layerWeights);
+   }
    // Debug prints
    std::cout << "\nParsed Parameters:\n";
    std::cout << "Cm = " << params.Cm << "\n";

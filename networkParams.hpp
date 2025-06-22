@@ -10,5 +10,6 @@ struct NetworkParameters
 	std::string networkType;
 	std::vector<int> layerSizes;
 	std::vector<std::vector<std::vector<double>>> allWeights;
+	std::vector<std::vector<std::vector<double>>> YFlashWeights;
 };
 #endif // NETWORKPARAMS_H

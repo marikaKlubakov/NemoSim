@@ -16,19 +16,9 @@ LIFLayer:: LIFLayer(int numNeurons, double Cm, double Cf, double Vth, double VDD
    }
 }
 
-void LIFLayer::initializeWeights(int nextLayerSize)
+void LIFLayer::initializeWeights(YFlash* yflash)
 {
-   std::random_device rd;
-   std::mt19937 gen(rd());
-   std::uniform_real_distribution<double> dist(-1.0, 1.0);
-   for (auto& row : m_weights)
-   {
-	   row.resize(nextLayerSize);
-	   for (double& w : row) 
-	   {
-		   w = dist(gen);
-	   }
-   }
+	m_yflash = yflash ;
 }
 
 unsigned int LIFLayer::getLayerSize() const
@@ -46,15 +36,27 @@ void LIFLayer::updateLayer(const std::vector<double>& input)
 
 void LIFLayer::step(std::vector<double>& nextInputs)
 {
+	std::vector<double> spikesVec;
 	for (size_t i = 0; i < m_neurons.size(); ++i)
 	{
 		if (m_neurons[i].hasSpiked())
 		{
-			for (size_t j = 0; j < m_neurons.size(); ++j)
-			{
-				nextInputs[j] += m_weights[i][j] * m_neurons[i].getVDD();
-			}
+			spikesVec[i] = m_neurons[i].getVDD();
+
+		}
+		else
+		{
+			spikesVec[i] = 0;
 		}
 	}
+	if (m_yflash)
+	{
+		nextInputs = m_yflash->step(spikesVec);
+	}
+	else
+	{
+		nextInputs = spikesVec;
+	}
+	
 }
 

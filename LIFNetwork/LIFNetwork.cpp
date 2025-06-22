@@ -7,16 +7,20 @@
 
 //implementation of LIFNetwork class
 
-LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_, double IR_)
+LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_, double IR_, std::vector<std::vector<std::vector<double>>> YFlashWeights)
        : m_VDD(VDD_), m_dt(dt_)
 {
+	for (size_t i = 0; (i < m_yflashVec.size() - 1) && m_yflashVec.size()!=0 ; ++i)
+	{
+		m_yflashVec.emplace_back(YFlashWeights[i]);
+	}
 	for (int size : layerSizes)
 	{
 		m_layers.emplace_back(size, Cm, Cf, Vth, m_VDD, m_dt, IR_);
 	}
-	for (size_t i = 0; i < m_layers.size() - 1; ++i)
+	for (size_t i = 0; (i < m_layers.size() - 1 )&& m_yflashVec.size() != 0; ++i)
 	{
-		m_layers[i].initializeWeights(m_layers[i + 1].getLayerSize());
+		m_layers[i].initializeWeights(&m_yflashVec[i]);
 	}
 }
 

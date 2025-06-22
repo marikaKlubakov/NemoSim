@@ -7,13 +7,13 @@
 #include <random>
 #include <string>
 #include "LIFNeuron.hpp"
-
+#include "YFlash.hpp"
 // --------- LIF Layer Definition ---------
 class LIFLayer 
 {
 public:
    LIFLayer(int numNeurons, double Cm, double Cf, double Vth, double VDD, double dt, double IR);
-   void initializeWeights(int nextLayerSize) ;
+   void initializeWeights(YFlash* yflash) ;
    unsigned int getLayerSize() const;
    void updateLayer(const std::vector<double>& input);
    void step(std::vector<double>& nextInputs);
@@ -25,5 +25,6 @@ public:
 private:
 	std::vector<LIFNeuron> m_neurons;
 	std::vector<std::vector<double>> m_weights;
+	YFlash* m_yflash;
 };
 #endif
