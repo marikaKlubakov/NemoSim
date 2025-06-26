@@ -14,8 +14,8 @@
 class LIFNetwork 
 {
 public:
-   LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_, double IR_, std::vector<std::vector<std::vector<double>>> YFlashWeights);
-   void feedForward(const std::vector<double>& input) ;
+   LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_, double IR_, std::vector<std::vector<std::vector<double>>>& YFlashWeights);
+   void feedForward(std::vector<double>& input) ;
    void printNetworkState(int timestep) const ;
    void printNetworkToFile();
 private:

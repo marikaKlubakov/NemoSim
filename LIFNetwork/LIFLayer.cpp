@@ -26,8 +26,12 @@ unsigned int LIFLayer::getLayerSize() const
 	return m_neurons.size();
 }
 
-void LIFLayer::updateLayer(const std::vector<double>& input)
+void LIFLayer::updateLayer(std::vector<double>& input)
 {
+	if (m_yflash)
+	{
+		input = m_yflash->step(input);
+	}
 	for (size_t i = 0; i < input.size(); ++i)
 	{
 		m_neurons[i].update(input[i]);
@@ -36,27 +40,20 @@ void LIFLayer::updateLayer(const std::vector<double>& input)
 
 void LIFLayer::step(std::vector<double>& nextInputs)
 {
-	std::vector<double> spikesVec;
+
 	for (size_t i = 0; i < m_neurons.size(); ++i)
 	{
 		if (m_neurons[i].hasSpiked())
 		{
-			spikesVec[i] = m_neurons[i].getVDD();
+			nextInputs[i] = m_neurons[i].getVDD();
 
 		}
 		else
 		{
-			spikesVec[i] = 0;
+			nextInputs[i] = 0;
 		}
 	}
-	if (m_yflash)
-	{
-		nextInputs = m_yflash->step(spikesVec);
-	}
-	else
-	{
-		nextInputs = spikesVec;
-	}
+
 	
 }
 

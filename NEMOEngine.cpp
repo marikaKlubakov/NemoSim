@@ -43,10 +43,15 @@ void NEMOEngine::runLIFEngine(std::ifstream &inputFile)
 	{
 		while (std::getline(inputFile, line))
 		{
-			double value = std::stod(line); // Convert string to double
-			std::vector<double> input;
-			input.push_back(value);
-			lifnetwork->feedForward(input);
+
+
+			std::vector<double> values;
+			std::stringstream ss(line);
+			double value;
+			while (ss >> value) {
+				values.push_back(value);
+			}
+			lifnetwork->feedForward(values);
 		}
 		inputFile.close();
 	}

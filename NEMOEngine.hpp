@@ -5,6 +5,8 @@
 #include <random>
 #include <string>
 #include <cmath>
+#include <sstream>
+
 #include <fstream>
 #include "networkParams.hpp"
 #include "LIFNetwork.hpp"

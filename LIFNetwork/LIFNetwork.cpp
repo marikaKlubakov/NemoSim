@@ -7,10 +7,10 @@
 
 //implementation of LIFNetwork class
 
-LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_, double IR_, std::vector<std::vector<std::vector<double>>> YFlashWeights)
+LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf, double Vth, double VDD_, double dt_, double IR_, std::vector<std::vector<std::vector<double>>>& YFlashWeights)
        : m_VDD(VDD_), m_dt(dt_)
 {
-	for (size_t i = 0; (i < m_yflashVec.size() - 1) && m_yflashVec.size()!=0 ; ++i)
+	for (size_t i = 0; (i < YFlashWeights.size() ) && YFlashWeights.size()!=0 ; ++i)
 	{
 		m_yflashVec.emplace_back(YFlashWeights[i]);
 	}
@@ -18,31 +18,36 @@ LIFNetwork::LIFNetwork(const std::vector<int>& layerSizes, double Cm, double Cf,
 	{
 		m_layers.emplace_back(size, Cm, Cf, Vth, m_VDD, m_dt, IR_);
 	}
-	for (size_t i = 0; (i < m_layers.size() - 1 )&& m_yflashVec.size() != 0; ++i)
+	for (size_t i = 0; (i < m_layers.size() - 1)&& m_yflashVec.size() != 0; ++i)
 	{
-		m_layers[i].initializeWeights(&m_yflashVec[i]);
+		m_layers[i+1].initializeWeights(&m_yflashVec[i]);
 	}
 }
 
-void LIFNetwork::feedForward(const std::vector<double>& input) 
+void LIFNetwork::feedForward(std::vector<double>& input) 
 {
     if (input.size() != m_layers[0].getLayerSize()) 
 	{
         std::cerr << "Input size mismatch!" << std::endl;
         return;
     }
-
-    m_layers[0].updateLayer(input);
        
-    for (size_t l = 0; l < m_layers.size() - 1; ++l)
+    for (size_t l = m_layers.size() - 1 ; l >= 0 ; --l)
 	{
-        std::vector<double> nextInputs(m_layers[l + 1].getLayerSize(), 0.0);
-        m_layers[l].step(nextInputs);
-
-		for (size_t i = 0; i < m_layers[l + 1].getLayerSize(); ++i)
+		if (l == 0)
 		{
-			m_layers[l + 1].updateLayer(nextInputs);
+			m_layers[0].updateLayer(input);
+			break;
+		} 
+		else
+		{
+			std::vector<double> nextInputs(m_layers[l - 1].getLayerSize(), 0.0);
+			m_layers[l - 1].step(nextInputs);
+
+			m_layers[l].updateLayer(nextInputs);
 		}
+
+
     }
 }
 void LIFNetwork::printNetworkState(int timestep) const
@@ -64,53 +69,45 @@ void LIFNetwork::printNetworkState(int timestep) const
 
 void LIFNetwork::printNetworkToFile()
 {
-	std::vector<double> vms = m_layers[0].getVms(0);
-	std::vector<double> Iin = m_layers[0].getIinVec(0);
-	std::vector<double> vout = m_layers[0].getVoutVec(0);
 
-	std::ofstream outputFile("vms.txt");
-	std::ofstream outputFile2("Iins.txt");
-	std::ofstream outputFile3("Vouts.txt");
-	if (outputFile.is_open()) 
-	{
-		for (const auto& value : vms) 
-		{
-			outputFile << value << std::endl;
+	for (size_t layerIdx = 0; layerIdx < m_layers.size(); ++layerIdx) {
+		size_t numNeurons = m_layers[layerIdx].getLayerSize();
+
+		for (size_t neuronIdx = 0; neuronIdx < numNeurons; ++neuronIdx) {
+			std::vector<double> vms = m_layers[layerIdx].getVms(neuronIdx);
+			std::vector<double> Iin = m_layers[layerIdx].getIinVec(neuronIdx);
+			std::vector<double> vout = m_layers[layerIdx].getVoutVec(neuronIdx);
+
+			std::string vmsFile = "vms" + std::to_string(layerIdx) + std::to_string(neuronIdx) + ".txt";
+			std::string iinFile = "Iins" + std::to_string(layerIdx) + std::to_string(neuronIdx) + ".txt";
+			std::string voutFile = "Vouts" + std::to_string(layerIdx) + std::to_string(neuronIdx) + ".txt";
+
+			std::ofstream vmsOut(vmsFile);
+			std::ofstream iinOut(iinFile);
+			std::ofstream voutOut(voutFile);
+
+			if (vmsOut.is_open()) {
+				for (const auto& value : vms) {
+					vmsOut << value << std::endl;
+				}
+				vmsOut.close();
+			}
+
+			if (iinOut.is_open()) {
+				for (const auto& value : Iin) {
+					iinOut << value << std::endl;
+				}
+				iinOut.close();
+			}
+
+			if (voutOut.is_open()) {
+				for (const auto& value : vout) {
+					voutOut << value << std::endl;
+				}
+				voutOut.close();
+			}
 		}
-		outputFile.close();
-		std::cout << "Values successfully written to file: " << "vms.txt" << std::endl;
-	}
-	else 
-	{
-		std::cerr << "Error opening file: " << "vms.txt" << std::endl;
 	}
 
-	if (outputFile2.is_open()) 
-	{
-		for (const auto& value : Iin) 
-		{
-			outputFile2 << value << std::endl;
-		}
-		outputFile2.close();
-		std::cout << "Values successfully written to file: " << "Iins.txt" << std::endl;
-	}
-	else 
-	{
-		std::cerr << "Error opening file: " << "Iins.txt" << std::endl;
-	}
-
-	if (outputFile3.is_open()) 
-	{
-		for (const auto& value : vout) 
-		{
-			outputFile3 << value << std::endl;
-		}
-		outputFile3.close();
-		std::cout << "Values successfully written to file: " << "Vouts.txt" << std::endl;
-	}
-	else 
-	{
-		std::cerr << "Error opening file: " << "Vouts.txt" << std::endl;
-	}
 }
  
