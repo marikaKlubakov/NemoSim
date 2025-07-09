@@ -1,7 +1,8 @@
-#ifndef BIUNEURON_HPP
-#define BIUNEURON_HPP
+#pragma once
 #include <vector>
-class BIUNeuron {
+
+class BIUNeuron 
+{
 public:
 	BIUNeuron(double vth, double vdd, double refractory, double cn, double cu, std::vector<double> weights);
 	void setSynapticInputs(const std::vector<double>& inputs);
@@ -26,4 +27,3 @@ private:
 	std::vector<double> m_Vin;
 	std::vector<double> m_Vn;
 };
-#endif // BIUNEURON_HPP

@@ -8,20 +8,12 @@
         <dt>0.001</dt>
 		<IR>100.0e-12</IR>
 	</LIFNetwork>
-    <YFlash>
-        <gm>1.0e-6</gm>
-        <req>1.0e6</req>
-        <CGBr>1.0e-12</CGBr>
-        <CGBi>1.0e-12</CGBi>
-        <CGSr>1.0e-12</CGSr>
-        <CGSi>1.0e-12</CGSi>
-        <CGDr>1.0e-12</CGDr>
-        <CGDi>1.0e-12</CGDi>
-        <CDBr>1.0e-12</CDBr>
-        <CDBi>1.0e-12</CDBi>
-        <CMOS>1.0e-12</CMOS>
-    </YFlash>
-    <Architecture>
+	<Architecture>
         <Layer size="1"/>
+		<YFlash rows="1" cols="1">
+			<weights>
+				<row>7.0</row>
+			</weights>
+		</YFlash>
     </Architecture>
 </NetworkConfig>

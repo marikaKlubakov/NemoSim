@@ -1,5 +1,4 @@
-#ifndef BIULAYER_H
-#define BIULAYER_H
+#pragma once
 
 #include <vector>
 #include "BIUNeuron.hpp"
@@ -16,5 +15,3 @@ public:
 private:
 	std::vector<BIUNeuron> neurons;
 };
-
-#endif // BIULAYER_H

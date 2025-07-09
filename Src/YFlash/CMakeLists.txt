@@ -10,20 +10,16 @@ endif()
 project(LIFNetwork LANGUAGES C CXX)
 
 set(SOURCES 
-    LIFNeuron.cpp
-    LIFLayer.cpp
-    LIFNetwork.cpp
+    YFlash.cpp
 )
 
 set(HEADERS 
-    LIFNeuron.hpp
-    LIFLayer.hpp
-    LIFNetwork.hpp
+    YFlash.hpp
 )
 
 # Create a static library instead of a shared one
-add_library(LIFNetwork STATIC ${SOURCES} ${HEADERS})
+add_library(YFlash STATIC ${SOURCES} ${HEADERS})
 
 # Allow NEMOSIM to use LIFNetwork headers
-target_include_directories(LIFNetwork PUBLIC ${CMAKE_SOURCE_DIR}/LIFNetwork)
+target_include_directories(LIFNetwork PUBLIC ${CMAKE_SOURCE_DIR}/YFlash)
 
