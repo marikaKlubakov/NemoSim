@@ -6,20 +6,50 @@
 #include <fstream>
 #include "XMLParser.hpp"
 #include "NEMOEngine.hpp"
+#include <fstream>
+#include <iostream>
+#include <string>
 
-bool RetrieveNetworkParamsFromXML(XMLParser* parser, NetworkParameters* params, char* XMLfilename, char* SupFilename = nullptr)
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#include <limits.h>
+#endif
+bool changeWorkingDirectory(const std::string& path) {
+#ifdef _WIN32
+	return SetCurrentDirectory(path.c_str());
+#else
+	return chdir(path.c_str()) == 0;
+#endif
+}
+
+
+std::string getCurrentWorkingDirectory() 
 {
-	const std::string& XMLfile = XMLfilename;
-	if (!parser->parse(XMLfile, *params))
+	char buffer[MAX_PATH];
+#ifdef _WIN32
+	GetCurrentDirectory(MAX_PATH, buffer);
+#else
+	getcwd(buffer, PATH_MAX);
+#endif
+	return std::string(buffer);
+}
+
+
+
+bool RetrieveNetworkParamsFromXML(XMLParser* parser, NetworkParameters* params, std::string XMLfilename, std::string SupFilename = nullptr)
+{
+	if (!parser->parse(XMLfilename, *params))
 	{
 		std::cerr << "Failed to parse network configuration." << std::endl;
 		return false;
 	}
 
-	if (SupFilename != nullptr)
+	if (!SupFilename.empty())
 	{
-		std::string supervisorXml = SupFilename;
-		if (!parser->parse(supervisorXml, *params))
+		if (!parser->parse(SupFilename, *params))
 		{
 			std::cerr << "Failed to parse network configuration." << std::endl;
 			return false;
@@ -32,25 +62,34 @@ bool RetrieveNetworkParamsFromXML(XMLParser* parser, NetworkParameters* params, 
 // --------- Main Simulation ---------
 int main(int argc, char* argv[])
 {
-	if (argc < 3)
+
+	if (argc < 2)
 	{
-		std::cerr << "Usage: " << argv[0] << " <XML configuration file>" << " <data input file>" << " optional <supervisor XML configuration file>" << std::endl;
+		std::cerr << "Usage: " << argv[0] << " <json configuration file>" << std::endl;
 		return 1;
 	}
 
+
+	
 	NetworkParameters params;
 	XMLParser parser;
-	// Parse the XML file to get network parameters
 
-	bool succeed = RetrieveNetworkParamsFromXML(&parser, &params,argv[1], argv[3]);
+	//parse json file
+	Config config = parser.parseConfigFromFile(argv[1]);
+
+	//change working directory
+	changeWorkingDirectory(config.outputDirectory);
+
+	// Parse the XML file to get network parameters
+	bool succeed = RetrieveNetworkParamsFromXML(&parser, &params, config.xmlConfigPath.c_str(), config.supXmlConfigPath);
 	if (!succeed)
 	{
 		return 1;
 	}
+
 	NEMOEngine NemoEngine(params);
 
-	std::string dataInputFile = argv[2];
-	std::ifstream inputFile(dataInputFile);
+	std::ifstream inputFile(config.dataInputPath);
 	NemoEngine.runEngine(inputFile);
 
 	return 0;

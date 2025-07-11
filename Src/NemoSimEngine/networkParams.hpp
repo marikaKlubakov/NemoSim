@@ -21,14 +21,36 @@ struct NetworkParameters
 };
 
 
-const std::unordered_map<NetworkTypes, std::string> NetworkTypeToString = {
+const std::unordered_map<NetworkTypes, std::string> NetworkTypeToString = 
+{
 	{NetworkTypes::BIUNetworkType, "BIUNetwork"},
 	{NetworkTypes::LIFNetworkType, "LIFNetwork"}
 };
 
 
 // String to enum
-const std::unordered_map<std::string, NetworkTypes> StringToNetworkType = {
+const std::unordered_map<std::string, NetworkTypes> StringToNetworkType = 
+{
 	{"BIUNetwork", NetworkTypes::BIUNetworkType},
 	{"LIFNetwork", NetworkTypes::LIFNetworkType}
+};
+
+struct Config 
+{
+	std::string outputDirectory;
+	std::string xmlConfigPath;
+	std::string supXmlConfigPath;
+	std::string dataInputPath;
+	int progressIntervalSeconds;
+};
+
+
+enum class ConfigKey 
+{
+	OutputDirectory,
+	XmlConfigPath,
+	SupXmlConfigPath,
+	DataInputFile,
+	ProgressIntervalSeconds,
+	Unknown
 };

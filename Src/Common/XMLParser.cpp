@@ -2,7 +2,11 @@
 #include <tinyxml2.h>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <vector>
+#include <string>
+#include <algorithm>
+
 bool XMLParser::parse(const std::string& filename, NetworkParameters& params) {
    using namespace tinyxml2;
    XMLDocument doc;
@@ -165,4 +169,91 @@ void XMLParser::YFlashParser(tinyxml2::XMLElement* YFlash, NetworkParameters& pa
 		std::cerr << "Warning: <weights> element missing in <synapses>\n";
 	}
 	params.YFlashWeights.push_back(layerWeights);
+}
+
+
+static std::string trim(const std::string& str)
+{
+	const char* whitespace = " \t\n\r\"";
+	size_t start = str.find_first_not_of(whitespace);
+	size_t end = str.find_last_not_of(whitespace);
+	return (start == std::string::npos) ? "" : str.substr(start, end - start + 1);
+}
+
+
+static ConfigKey getConfigKey(const std::string& key) 
+{
+	static const std::unordered_map<std::string, ConfigKey> keyMap = 
+	{
+		{"output_directory", ConfigKey::OutputDirectory},
+		{"xml_config_path", ConfigKey::XmlConfigPath},
+		{"sup_xml_config_path", ConfigKey::SupXmlConfigPath},
+		{"data_input_file", ConfigKey::DataInputFile},
+		{"progress_interval_seconds", ConfigKey::ProgressIntervalSeconds}
+	};
+
+	auto it = keyMap.find(key);
+	return it != keyMap.end() ? it->second : ConfigKey::Unknown;
+}
+
+Config XMLParser::parseConfigFromFile(const std::string& filePath)
+{
+	Config config;
+	std::ifstream file(filePath);
+	if (!file.is_open()) 
+	{
+		throw std::runtime_error("Unable to open file: " + filePath);
+	}
+
+	std::string line;
+	while (std::getline(file, line)) 
+	{
+		size_t colon = line.find(':');
+		if (colon == std::string::npos) continue;
+
+		std::string key = trim(line.substr(0, colon));
+
+		// Skip whitespace after colon
+		size_t start = line.find_first_not_of(" \t", colon + 1);
+
+		std::string value;
+		if (line[start] == '"') 
+		{
+			// Value is a quoted string
+			size_t end = line.find('"', start + 1);
+			value = line.substr(start + 1, end - start - 1);
+		}
+		else 
+		{
+			// Value is a number or unquoted
+			size_t end = line.find_first_of(", \t\r\n", start);
+			value = line.substr(start, end - start);
+		}
+
+
+
+		switch (getConfigKey(key))
+		{
+		case ConfigKey::OutputDirectory:
+			config.outputDirectory = value;
+			break;
+		case ConfigKey::XmlConfigPath:
+			config.xmlConfigPath = value;
+			break;
+		case ConfigKey::SupXmlConfigPath:
+			config.supXmlConfigPath = value;
+			break;
+		case ConfigKey::DataInputFile:
+			config.dataInputPath = value;
+			break;
+		case ConfigKey::ProgressIntervalSeconds:
+			config.progressIntervalSeconds = std::stoi(value);
+			break;
+		default:
+			std::cerr << "Unknown config key: " << key << std::endl;
+			break;
+		}
+	}
+	return config;
+
 }
