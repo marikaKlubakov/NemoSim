@@ -2,7 +2,15 @@
   
 ## Overview  
   
-NEMOSIM.exe is a simulation tool that uses two input files: an XML configuration file and a TXT file containing current input values.  
+NEMOSIM.exe is a simulation tool that uses one input file: a json configuration file.
+
+This configuration file defines the paths and settings for running the simulation:
+
+- output_directory: Directory where output files will be saved.
+- xml_config_path: Path to the XML configuration file for the test setup.
+- data_input_file: Input data file used during the test.
+- progress_interval_seconds: Time interval (in seconds) for logging progress updates.
+- <xml_config_path>: Path to the supervisor XML configuration file for the test setup.
   
 ## Usage  
 
@@ -10,16 +18,11 @@ NEMOSIM.exe is a simulation tool that uses two input files: an XML configuration
   
 1. To run the LIF network simulation, use the following command:  
   
-NEMOSIM.exe .\Tests\SNN\LIF\sin_current_test\test.xml .\Tests\SNN\LIF\sin_current_test\input.txt  
-  
-### Input Files  
-  
-- XML Configuration File: Specifies the configuration parameters for the simulation.  
-- TXT Input File: Contains the current input values.  
+NEMOSIM.exe .\Tests\SNN\LIF\sin_current_test\config.json
   
 ### Output Files  
   
-The simulation generates three output files:  
+The simulation generates three output files for each neuron:  
   
 - Iins.txt: Shows the current input values.  
 - vms.txt: Contains the membrane potential values.  
@@ -27,7 +30,9 @@ The simulation generates three output files:
   
 2. After the simulation, run the following Python script to plot the values over time:  
   
-python plot_vm_to_dt.py Iins.txt vms.txt Vouts.txt  
+python plot_vm_to_dt.py <path_to_output_dir>
+
+Then enter the layer index followed by the neuron index.
   
 This will generate an image showing the values over time.  
   
@@ -43,13 +48,8 @@ python input_creator.py
   
 1. To run the BIU network simulation, use the following command:  
   
-NEMOSIM.exe .\Tests\SNN\BIU\test.xml .\Tests\SNN\BIU\input.txt <.\Tests\SNN\BIU\supervisor.xml>
+NEMOSIM.exe .\Tests\SNN\BIU\config.json
   
-### Input Files  
-  
-- XML Configuration File: Specifies the configuration parameters and architecture for the simulation.  
-- TXT Input File: Contains the current input values.  
-- XML Supervisor Configuration File <optional>: Specifies the configuration parameters for the simulation.
 ### Output Files  
   
 The simulation generates three output files:  

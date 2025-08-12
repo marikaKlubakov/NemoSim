@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 
+class EnergyTable; // Forward declaration
+
 class BIUNeuron 
 {
 public:
@@ -26,4 +28,11 @@ private:
 	std::vector<double> m_spikes;
 	std::vector<double> m_Vin;
 	std::vector<double> m_Vn;
+
+	// Additional members
+	std::vector<int> synapseSpikeCounts; // spike count per synapse (for spike rate)
+	std::vector<double> synapseEnergyConsumed; // total energy per synapse
+
+	// Add a static pointer to the shared energy table:
+	static const EnergyTable* energyTable;
 };

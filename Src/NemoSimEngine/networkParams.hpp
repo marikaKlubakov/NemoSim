@@ -18,6 +18,7 @@ struct NetworkParameters
 	std::vector<int> layerSizes;
 	std::vector<std::vector<std::vector<double>>> allWeights;
 	std::vector<std::vector<std::vector<double>>> YFlashWeights;
+	std::string csvPath;
 };
 
 
@@ -41,6 +42,7 @@ struct Config
 	std::string xmlConfigPath;
 	std::string supXmlConfigPath;
 	std::string dataInputPath;
+	std::string EnergyCsvFile;
 	int progressIntervalSeconds;
 };
 

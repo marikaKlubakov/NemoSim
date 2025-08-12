@@ -1,11 +1,19 @@
 #include "BIUNetwork.hpp"
+#include "EnergyTable.hpp" // Add this include
 #include <fstream>
-
 BIUNetwork::BIUNetwork(NetworkParameters params)
 {
+	energyTable = new EnergyTable();
+
 	for (size_t i = 0; i < params.layerSizes.size(); ++i)
 	{
 		m_vecLayers.emplace_back(params.layerSizes[i], params.VTh, params.VDD, params.refractory, params.Cn, params.Cu, params.allWeights[i]);
+	}
+	if (!params.csvPath.empty())
+	{
+		if (!energyTable->loadFromCSV(params.csvPath)) {
+			throw std::runtime_error("Failed to load energy table from: " + params.csvPath);
+		}
 	}
 }
 
