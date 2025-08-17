@@ -23,11 +23,11 @@ mkdir "%TEMP_DIR%"
 
 :: Copy files to package
 copy "%OUTPUT_DIR%\NEMOSIM.exe" "%TEMP_DIR%"
-copy "%~dp0\Doc\readme.txt" "%TEMP_DIR%"
-copy "%~dp0\tinyxml2.h" "%TEMP_DIR%"
-copy "%~dp0\LIFNetwork\plot_vm_to_dt.py" "%TEMP_DIR%"
-copy "%~dp0\LIFNetwork\input_creator.py" "%TEMP_DIR%"
-copy "%~dp0\BIUNetwork\plot_vn_to_dt.py" "%TEMP_DIR%"
+copy "%~dp0\Src\Doc\readme.txt" "%TEMP_DIR%"
+copy "%~dp0\Src\Common\tinyxml2.h" "%TEMP_DIR%"
+copy "%~dp0\Src\LIFNetwork\plot_vm_to_dt.py" "%TEMP_DIR%"
+copy "%~dp0\Src\LIFNetwork\input_creator.py" "%TEMP_DIR%"
+copy "%~dp0\Src\BIUNetwork\plot_vn_to_dt.py" "%TEMP_DIR%"
 
 robocopy "%TESTS_DIR%" "%TEMP_DIR%\Tests" /E
 del /f /q "%TEMP_DIR%\Tests\postBuildTester.py"
