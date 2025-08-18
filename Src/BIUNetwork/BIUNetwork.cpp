@@ -1,11 +1,19 @@
 #include "BIUNetwork.hpp"
+#include "EnergyTable.hpp" // Add this include
 #include <fstream>
-
 BIUNetwork::BIUNetwork(NetworkParameters params)
 {
+	energyTable = new EnergyTable();
+
 	for (size_t i = 0; i < params.layerSizes.size(); ++i)
 	{
 		m_vecLayers.emplace_back(params.layerSizes[i], params.VTh, params.VDD, params.refractory, params.Cn, params.Cu, params.allWeights[i]);
+	}
+	if (!params.csvPath.empty())
+	{
+		if (!energyTable->loadFromCSV(params.csvPath)) {
+			throw std::runtime_error("Failed to load energy table from: " + params.csvPath);
+		}
 	}
 }
 
@@ -72,52 +80,42 @@ std::vector<std::vector<bool>> BIUNetwork::update()
 
 void BIUNetwork::printNetworkToFile()
 {
-	std::vector<double> Vns = m_vecLayers[0].getVns(0);
-	std::vector<double> spikes = m_vecLayers[0].getSpikesVec(0);
-	std::vector<double> Vin = m_vecLayers[0].getVinVec(0);
+    for (size_t layerIdx = 0; layerIdx < m_vecLayers.size(); ++layerIdx) {
+        size_t numNeurons = m_vecLayers[layerIdx].getLayerSize();
 
-	std::ofstream outputFile("Vns.txt");
-	std::ofstream outputFile2("Spikes.txt");
-	std::ofstream outputFile3("Vin.txt");
-	if (outputFile.is_open())
-	{
-		for (const auto& value : Vns)
-		{
-			outputFile << value << std::endl;
-		}
-		outputFile.close();
-		std::cout << "Values successfully written to file: " << "Vns.txt" << std::endl;
-	}
-	else
-	{
-		std::cerr << "Error opening file: " << "Vns.txt" << std::endl;
-	}
-	
-	if (outputFile3.is_open())
-	{
-		for (const auto& value : Vin)
-		{
-			outputFile3 << value << std::endl;
-		}
-		outputFile3.close();
-		std::cout << "Values successfully written to file: " << "Vns.txt" << std::endl;
-	}
-	else
-	{
-		std::cerr << "Error opening file: " << "Vns.txt" << std::endl;
-	}
+        for (size_t neuronIdx = 0; neuronIdx < numNeurons; ++neuronIdx) {
+            std::vector<double> Vns = m_vecLayers[layerIdx].getVns(neuronIdx);
+            std::vector<double> spikes = m_vecLayers[layerIdx].getSpikesVec(neuronIdx);
+            std::vector<double> Vin = m_vecLayers[layerIdx].getVinVec(neuronIdx);
 
-	if (outputFile2.is_open())
-	{
-		for (const auto& value : spikes)
-		{
-			outputFile2 << value << std::endl;
-		}
-		outputFile2.close();
-		std::cout << "Values successfully written to file: " << "Spikes.txt" << std::endl;
-	}
-	else
-	{
-		std::cerr << "Error opening file: " << "Spikes.txt" << std::endl;
-	}
+            std::string vnsFile = "vns" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
+            std::string spikesFile = "spikes" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
+            std::string vinFile = "vin" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
+
+            std::ofstream vnsOut(vnsFile);
+            std::ofstream spikesOut(spikesFile);
+            std::ofstream vinOut(vinFile);
+
+            if (vnsOut.is_open()) {
+                for (const auto& value : Vns) {
+                    vnsOut << value << std::endl;
+                }
+                vnsOut.close();
+            }
+
+            if (spikesOut.is_open()) {
+                for (const auto& value : spikes) {
+                    spikesOut << value << std::endl;
+                }
+                spikesOut.close();
+            }
+
+            if (vinOut.is_open()) {
+                for (const auto& value : Vin) {
+                    vinOut << value << std::endl;
+                }
+                vinOut.close();
+            }
+        }
+    }
 }

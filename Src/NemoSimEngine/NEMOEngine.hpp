@@ -10,6 +10,7 @@
 #include "LIFNetwork.hpp"
 #include "BIUNetwork.hpp"
 #include "BaseNetwork.hpp"
+#include "ANNNetwork.hpp"
 
 class NEMOEngine
 {

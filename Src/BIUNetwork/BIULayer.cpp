@@ -4,24 +4,29 @@ BIULayer::BIULayer(int numNeurons, double vth, double vdd, double refractory, do
 {
 	for (int i = 0; i < numNeurons; ++i)
 	{
-		neurons.emplace_back(vth, vdd, refractory, cn, cu, weights[i]);
+		m_neurons.emplace_back(vth, vdd, refractory, cn, cu, weights[i]);
 	}
 }
 
 void BIULayer::setInputs(const std::vector<std::vector<double>>& inputs)
 {
-	for (size_t i = 0; i < neurons.size(); ++i)
+	for (size_t i = 0; i < m_neurons.size(); ++i)
 	{
-		neurons[i].setSynapticInputs(inputs[i]);
+		m_neurons[i].setSynapticInputs(inputs[i]);
 	}
 }
 
 std::vector<bool> BIULayer::update()
 {
 	std::vector<bool> spikes;
-	for (auto& neuron : neurons)
+	for (auto& neuron : m_neurons)
 	{
 		spikes.push_back(neuron.update());
 	}
 	return spikes;
+}
+
+unsigned int BIULayer::getLayerSize() const
+{
+	return m_neurons.size();
 }

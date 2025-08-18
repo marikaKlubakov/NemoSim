@@ -1,4 +1,6 @@
 #pragma once
+#include <fstream>
+
 // --------- LIF Network Definition ---------
 class BaseNetwork
 {

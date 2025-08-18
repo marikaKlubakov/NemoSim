@@ -52,10 +52,10 @@ void LIFNetwork::feedForward(std::vector<double>& input)
 void LIFNetwork::printNetworkState(int timestep) const
 {
 	std::cout << "Time Step: " << timestep << std::endl;
-	for (size_t l = 0; l < m_layers.size(); ++l)
+	for (int l = 0; l < m_layers.size(); ++l)
 	{
 		std::cout << "Layer " << l << ":" << std::endl;
-		for (size_t i = 0; i < m_layers[l].getLayerSize(); ++i)
+		for (int i = 0; i < m_layers[l].getLayerSize(); ++i)
 		{
 			std::cout << "  Neuron " << i << " Vm: " << m_layers[l].getVm(i);
 			if (m_layers[l].hasSpiked(i)) std::cout << " (Spiked)";
@@ -69,17 +69,17 @@ void LIFNetwork::printNetworkState(int timestep) const
 void LIFNetwork::printNetworkToFile()
 {
 	std::cout << "printing network files " << std::endl;
-	for (size_t layerIdx = 0; layerIdx < m_layers.size(); ++layerIdx) {
-		size_t numNeurons = m_layers[layerIdx].getLayerSize();
+	for (int layerIdx = 0; layerIdx < m_layers.size(); ++layerIdx) {
+		int numNeurons = m_layers[layerIdx].getLayerSize();
 
-		for (size_t neuronIdx = 0; neuronIdx < numNeurons; ++neuronIdx) {
+		for (int neuronIdx = 0; neuronIdx < numNeurons; ++neuronIdx) {
 			std::vector<double> vms = m_layers[layerIdx].getVms(neuronIdx);
 			std::vector<double> Iin = m_layers[layerIdx].getIinVec(neuronIdx);
 			std::vector<double> vout = m_layers[layerIdx].getVoutVec(neuronIdx);
 
-			std::string vmsFile = "vms" + std::to_string(layerIdx) + std::to_string(neuronIdx) + ".txt";
-			std::string iinFile = "Iins" + std::to_string(layerIdx) + std::to_string(neuronIdx) + ".txt";
-			std::string voutFile = "Vouts" + std::to_string(layerIdx) + std::to_string(neuronIdx) + ".txt";
+			std::string vmsFile = "vms_" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
+			std::string iinFile = "iins_" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
+			std::string voutFile = "vouts_" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
 
 			std::ofstream vmsOut(vmsFile);
 			std::ofstream iinOut(iinFile);

@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 
+class EnergyTable; // Forward declaration
+
 class BIUNeuron 
 {
 public:
