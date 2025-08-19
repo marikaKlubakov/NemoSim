@@ -1,13 +1,14 @@
 #include "BIUNetwork.hpp"
-#include "EnergyTable.hpp" // Add this include
+#include "EnergyTable.hpp"
 #include <fstream>
+
 BIUNetwork::BIUNetwork(NetworkParameters params)
 {
 	energyTable = new EnergyTable();
 
 	for (size_t i = 0; i < params.layerSizes.size(); ++i)
 	{
-		m_vecLayers.emplace_back(params.layerSizes[i], params.VTh, params.VDD, params.refractory, params.Cn, params.Cu, params.allWeights[i]);
+		m_vecLayers.emplace_back(params.layerSizes[i], params.VTh, params.VDD, params.refractory, params.Cn, params.Cu, params.allWeights[i], energyTable);
 	}
 	if (!params.csvPath.empty())
 	{
@@ -19,36 +20,45 @@ BIUNetwork::BIUNetwork(NetworkParameters params)
 
 void BIUNetwork::run(std::ifstream& inputFile)
 {
-	std::string line;
-	int t = 0;
-	if (inputFile.is_open())
-	{
-		while (std::getline(inputFile, line))
-		{
-			// Format input to match the required structure
-			double value = std::stod(line); // Convert string to double
-			std::vector<double> input;
-			std::vector<std::vector<std::vector<double>>> currentInput = { { { value } } };// split the values of the line into the vector
-			setInputs(currentInput);
-			auto spikes = update();
-			std::cout << "Timestep " << t << ": ";
-			for (const auto& layerSpikes : spikes)
-			{
-				for (bool spike : layerSpikes)
-				{
-					std::cout << (spike ? "1" : "0") << " ";
-				}
-			}
-			std::cout << std::endl;
-		}
-		inputFile.close();
-	}
-	else
-	{
-		std::cerr << "Unable to open file" << std::endl;
-	}
-	inputFile.close();
+    if (!inputFile.is_open()) {
+        std::cerr << "Unable to open file\n";
+        return;
+    }
+
+    const std::size_t totalLines = countLines(inputFile);
+
+    std::string line;
+    std::size_t currentLine = 0;
+    int t = 0;
+
+    while (std::getline(inputFile, line)) {
+        ++currentLine;
+        ++t;
+
+        double value = std::stod(line);
+        std::vector<std::vector<std::vector<double>>> currentInput = { { { value } } };
+        setInputs(currentInput);
+
+        auto spikes = update();
+
+       /* std::cout << "Timestep " << t << ": ";
+        for (const auto& layerSpikes : spikes)
+            for (bool spike : layerSpikes)
+                std::cout << (spike ? "1" : "0") << ' ';
+        std::cout << '\n';*/
+
+        showProgressBar(currentLine, totalLines);  // from BaseNetwork
+    }
+
+    std::cout << "\nFinished executing.\n";
+    inputFile.close();
+
+    double totalEnergy = 0.0;
+    for (const auto& layer : m_vecLayers)
+        totalEnergy += layer.getTotalLayerEnergy();
+    std::cout << "Total synaptic energy: " << totalEnergy << '\n';
 }
+
 
 void BIUNetwork::setInputs(const std::vector<std::vector<std::vector<double>>>& inputs)
 {

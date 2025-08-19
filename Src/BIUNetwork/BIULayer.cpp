@@ -1,10 +1,12 @@
 #include "BIULayer.hpp"
+#include "EnergyTable.hpp"
 
-BIULayer::BIULayer(int numNeurons, double vth, double vdd, double refractory, double cn, double cu, std::vector<std::vector<double>> weights)
+BIULayer::BIULayer(int numNeurons, double vth, double vdd, double refractory, double cn, double cu, std::vector<std::vector<double>> weights, EnergyTable* energyTable)
+    : m_energyTable(energyTable)
 {
 	for (int i = 0; i < numNeurons; ++i)
 	{
-		m_neurons.emplace_back(vth, vdd, refractory, cn, cu, weights[i]);
+		m_neurons.emplace_back(vth, vdd, refractory, cn, cu, weights[i], m_energyTable);
 	}
 }
 
@@ -29,4 +31,11 @@ std::vector<bool> BIULayer::update()
 unsigned int BIULayer::getLayerSize() const
 {
 	return m_neurons.size();
+}
+
+double BIULayer::getTotalLayerEnergy() const
+{
+    double sum = 0.0;
+    for (const auto& neuron : m_neurons) sum += neuron.getTotalSynapticEnergy();
+    return sum;
 }

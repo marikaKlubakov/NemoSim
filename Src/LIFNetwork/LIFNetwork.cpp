@@ -110,62 +110,34 @@ void LIFNetwork::printNetworkToFile()
 
 }
 
-void showProgressBar(int current, int total) 
-{
-	int barWidth = 50;
-	float progress = static_cast<float>(current) / total;
-	int pos = static_cast<int>(barWidth * progress);
 
-	std::cout << "[";
-	for (int i = 0; i < barWidth; ++i) 
-	{
-		if (i < pos) std::cout << "=";
-		else if (i == pos) std::cout << ">";
-		else std::cout << " ";
-	}
-	std::cout << "] " << int(progress * 100.0) << " %\r";
-	std::cout.flush();
-}
 
  
 void LIFNetwork::run(std::ifstream& inputFile)
 {
 	std::string line;
 
-	if (!inputFile.is_open()) 
-	{
-		std::cerr << "Unable to open file" << std::endl;
-		return ;
+	if (!inputFile.is_open()) {
+		std::cerr << "Unable to open file\n";
+		return;
 	}
 
-	// First pass: count total lines
-	int totalLines = 0;
-	while (std::getline(inputFile, line)) 
-	{
-		++totalLines;
-	}
+	// use base helper (or keep your original counting code)
+	const std::size_t totalLines = countLines(inputFile);
 
-	// Reset file to beginning
-	inputFile.clear();
-	inputFile.seekg(0);
-
-	// Second pass: read and process with progress
-	int currentLine = 0;
-	while (std::getline(inputFile, line)) 
-	{
+	std::size_t currentLine = 0;
+	while (std::getline(inputFile, line)) {
 		++currentLine;
 
 		std::vector<double> values;
 		std::stringstream ss(line);
 		double value;
-		while (ss >> value) {
-			values.push_back(value);
-		}
+		while (ss >> value) values.push_back(value);
 
 		feedForward(values);
-		showProgressBar(currentLine, totalLines);
+		showProgressBar(currentLine, totalLines);  // now from BaseNetwork
 	}
 
-	std::cout << std::endl << "Finished executing." << std::endl;
+	std::cout << "\nFinished executing.\n";
 	inputFile.close();
 }

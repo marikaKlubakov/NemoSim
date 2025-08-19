@@ -1,4 +1,4 @@
-#include "EnergyTable.hpp"
+﻿#include "EnergyTable.hpp"
 #include <fstream>
 #include <sstream>
 
@@ -29,4 +29,10 @@ double EnergyTable::getEnergy(int weight, int spike_rate) const {
         spike_rate > static_cast<int>(table[0].size()))
         return 0.0;
     return table[weight - 1][spike_rate - 1];
+}
+
+double EnergyTable::getEnergyBySpike(int weight, bool spike_in) const {
+    // Assume spike_in == true → spike_rate = 2, false → spike_rate = 1
+    int spike_rate = spike_in ? 1: 2;
+    return getEnergy(weight, spike_rate);
 }

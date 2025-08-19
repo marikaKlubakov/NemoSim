@@ -1,4 +1,5 @@
 #include "BIUNeuron.hpp"
+#include "EnergyTable.hpp"
 #include <vector>
 #include <stdexcept> // For std::invalid_argument and std::runtime_error
 
@@ -6,13 +7,14 @@
 #define R_LEAK 1e8  // Leakage resistor
 #define VDD_HALF_FACTOR 0.5 // For clarity in voltage calculation
 
-BIUNeuron::BIUNeuron(double vth, double vdd, double refractory, double cn, double cu, std::vector<double> weights)
+BIUNeuron::BIUNeuron(double vth, double vdd, double refractory, double cn, double cu, std::vector<double> weights, EnergyTable* energyTable)
     : VTH(vth), VDD(vdd), refractoryTime(refractory),
-    Cn(cn), Cu(cu), synapticWeights(weights)
+    Cn(cn), Cu(cu), synapticWeights(weights), m_energyTable(energyTable)
 {
     Vn = 0;
     cyclesLeft = 0;
     synapticInputs.resize(weights.size(), 0.0);
+    synapticEnergy.resize(weights.size(), 0.0);
 }
 
 void BIUNeuron::setSynapticInputs(const std::vector<double>& inputs)
@@ -20,6 +22,10 @@ void BIUNeuron::setSynapticInputs(const std::vector<double>& inputs)
     if (inputs.size() != synapticWeights.size())
         throw std::invalid_argument("Input size does not match synaptic weights size.");
     synapticInputs = inputs;
+    for (size_t i = 0; i < synapticInputs.size(); ++i)
+    {
+	    synapticEnergy[i] += m_energyTable->getEnergyBySpike(static_cast<int>(synapticWeights[i]), synapticInputs[i] > 0);
+    }
     if (!synapticInputs.empty())
         m_Vin.emplace_back(synapticInputs[0]);
 }
@@ -67,4 +73,11 @@ bool BIUNeuron::update()
 double BIUNeuron::getVoltage() const
 {
     return Vn;
+}
+
+double BIUNeuron::getTotalSynapticEnergy() const
+{
+    double sum = 0.0;
+    for (double e : synapticEnergy) sum += e;
+    return sum;
 }

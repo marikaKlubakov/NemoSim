@@ -93,40 +93,45 @@ bool RetrieveNetworkParamsFromXML(XMLParser* parser, NetworkParameters* params, 
 // --------- Main Simulation ---------
 int main(int argc, char* argv[])
 {
-	if (argc < 2)
-	{
-		std::cerr << "Usage: " << argv[0] << " <json configuration file>" << std::endl;
-		return 1;
-	}
+	try {
+		if (argc < 2)
+		{
+			std::cerr << "Usage: " << argv[0] << " <json configuration file>" << std::endl;
+			return 1;
+		}
 
-	NetworkParameters params;
-	XMLParser parser;
+		NetworkParameters params;
+		XMLParser parser;
 
-	//parse json file
-	Config config = parser.parseConfigFromFile(argv[1]);
+		//parse json file
+		Config config = parser.parseConfigFromFile(argv[1]);
 
-	// Parse the XML file to get network parameters
-	bool succeed = RetrieveNetworkParamsFromXML(&parser, &params, config);
-	if (!succeed)
-	{
-		return 1;
-	}
+		// Parse the XML file to get network parameters
+		bool succeed = RetrieveNetworkParamsFromXML(&parser, &params, config);
+		if (!succeed)
+		{
+			return 1;
+		}
 
-	NEMOEngine NemoEngine(params);
+		NEMOEngine NemoEngine(params);
 
-	std::ifstream inputFile(config.dataInputPath);
-	if (!inputFile.is_open()) {
-	    std::cerr << "Failed to open input data file: " << config.dataInputPath << std::endl;
-	    return 1;
-	}
-	//change working directory
-	if (!changeWorkingDirectory(config.outputDirectory)) {
-	    std::cerr << "Failed to change working directory to: " << config.outputDirectory << std::endl;
-	    return 1;
-	}
-	NemoEngine.runEngine(inputFile);
-
-	return 0;
+		std::ifstream inputFile(config.dataInputPath);
+		if (!inputFile.is_open()) {
+		    std::cerr << "Failed to open input data file: " << config.dataInputPath << std::endl;
+		    return 1;
+		}
+		//change working directory
+		if (!changeWorkingDirectory(config.outputDirectory)) {
+		    std::cerr << "Failed to change working directory to: " << config.outputDirectory << std::endl;
+		    return 1;
+		}
+		NemoEngine.runEngine(inputFile);
+	} catch (const std::exception& ex) {
+        std::cerr << "Standard exception caught: " << ex.what() << std::endl;
+    } catch (...) {
+        std::cerr << "Unknown exception caught." << std::endl;
+    }
+    return 0;
 }
 
 
