@@ -206,8 +206,9 @@ void XMLParser::LIFNetworkParser(XMLElement* LIF, XMLElement* arch, NetworkParam
             int size;
             if (layer->QueryIntAttribute("size", &size) == tinyxml2::XML_SUCCESS)
                 params.layerSizes.push_back(size);
-            else
-                std::cerr << "Warning: Missing or invalid 'size' in LIF <Layer>\n";
+            else {
+                throw std::runtime_error("Error: Missing or invalid 'size' in LIF <Layer>");
+            }
         }
     }
 }
@@ -225,8 +226,9 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
             int size;
             if (layer->QueryIntAttribute("size", &size) == tinyxml2::XML_SUCCESS)
                 params.layerSizes.push_back(size);
-            else
-                std::cerr << "Warning: Missing or invalid 'size' attribute in <Layer>\n";
+            else {
+                throw std::runtime_error("Error: Missing or invalid 'size' in BIU <Layer>");
+            }
             auto* synapses = layer->FirstChildElement("synapses");
             if (synapses) {
                 auto* weightsElem = synapses->FirstChildElement("weights");
@@ -235,8 +237,7 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
                     for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row")) {
                         const char* rowText = rowElem->GetText();
                         if (!rowText) {
-                            std::cerr << "Warning: Empty <row> in weights\n";
-                            continue;
+                            throw std::runtime_error("Error: Empty <row> in weights");
                         }
                         std::istringstream iss(rowText);
                         std::vector<double> rowWeights;
@@ -247,12 +248,12 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
                     }
                 }
                 else {
-                    std::cerr << "Warning: <weights> element missing in <synapses>\n";
+                    throw std::runtime_error("Error: <weights> element missing in <synapses>");
                 }
                 params.allWeights.push_back(layerWeights);
             }
             else {
-                std::cerr << "Warning: <synapses> missing in <Layer>\n";
+                throw std::runtime_error("Error: <synapses> missing in <Layer>");
             }
         }
     }
@@ -336,7 +337,7 @@ void XMLParser::ANNParsePE(XMLElement* peElem, NetworkParameters& params)
         params.annPEs.push_back(std::move(pe));
     }
     else {
-        std::cerr << "Warning: <PE> without <YFlash> encountered.\n";
+        throw std::runtime_error("Error: <PE> without <YFlash> encountered.");
     }
 }
 
@@ -390,12 +391,11 @@ void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBloc
         int cols = static_cast<int>(yb.Wpos.front().size());
         for (auto& r : yb.Wpos) {
             if (static_cast<int>(r.size()) != cols) {
-                std::cerr << "Warning: YFlash Wpos is not rectangular\n";
-                break;
+                throw std::runtime_error("Error: YFlash Wpos is not rectangular");
             }
         }
     }
     if (yb.isSigned && !yb.Wneg.empty() && yb.Wneg.size() != yb.Wpos.size()) {
-        std::cerr << "Warning: YFlash Wneg rows != Wpos rows\n";
+        throw std::runtime_error("Error: YFlash Wneg rows != Wpos rows");
     }
 }
