@@ -8,12 +8,14 @@ set(SOURCES
     BIUNeuron.cpp
     BIULayer.cpp
     BIUNetwork.cpp
+    EnergyTable.cpp
 )
 
 set(HEADERS 
     BIUNeuron.hpp
     BIULayer.hpp
     BIUNetwork.hpp
+    EnergyTable.hpp
 )
 
 # Create a static library instead of a shared one
