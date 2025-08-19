@@ -11,10 +11,12 @@ project(LIFNetwork LANGUAGES C CXX)
 
 set(SOURCES 
     YFlash.cpp
+    ANNYFlash.cpp
 )
 
 set(HEADERS 
     YFlash.hpp
+    ANNYFlash.hpp
 )
 
 # Create a static library instead of a shared one

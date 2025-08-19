@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NetworkConfig type="ANNNetwork">
+	<ANNNetwork>
+	  <VDD>1.8</VDD>                 <!-- 180 nm analog typical; PDF centers VCM at 0.9 V -->
+	  <ClockHz>6.667e7</ClockHz>     <!-- 66.67 MHz -->
+	  <BitSerialBits>8</BitSerialBits>
+
+	  <Mux>
+		<FanIn>8</FanIn>
+		<ShareAcrossColumns>true</ShareAcrossColumns>
+	  </Mux>
+
+	  <VTC>
+		<C>1.0e-14</C>               <!-- 10 fF -->
+		<Idis>1.0e-6</Idis>          <!-- derived default -->
+		<Vth>0.1</Vth>               <!-- ~100 mV from figure -->
+		<T0>1.0e-8</T0>              <!-- 10 ns sample -->
+		<dtLSB>2.1094e-10</dtLSB>    <!-- 13.5 ns / 64 -->
+		<CurrentGainA>7.8125e-9</CurrentGainA> <!-- optional scaler tied to cell LSB -->
+	  </VTC>
+
+	  <TDC>
+		<Bits>6</Bits>               <!-- SAR D[5:0] -->
+	  </TDC>
+
+	  <DSA>
+		<OutBits>12</OutBits>        <!-- output trend -->
+	  </DSA>
+	</ANNNetwork>
+  <Architecture>
+    <!-- 4 PEs total; each PE contains one 8x8 Y-Flash (unsigned example).
+         If you use signed weights, set signed="true" and add a <weights neg="true"> block. -->
+
+    <PE id="0">
+      <YFlash rows="8" cols="8" signed="false">
+        <weights pos="true">
+          <row>1 0 0 0 0 0 0 0</row>
+          <row>0 1 0 0 0 0 0 0</row>
+          <row>0 0 1 0 0 0 0 0</row>
+          <row>0 0 0 1 0 0 0 0</row>
+          <row>0 0 0 0 1 0 0 0</row>
+          <row>0 0 0 0 0 1 0 0</row>
+          <row>0 0 0 0 0 0 1 0</row>
+          <row>0 0 0 0 0 0 0 1</row>
+        </weights>
+      </YFlash>
+    </PE>
+
+    <PE id="1">
+      <YFlash rows="8" cols="8" signed="false">
+        <weights pos="true">
+          <row>0.5 0.1 0.1 0.1 0.1 0.05 0.05 0</row>
+          <row>0.1 0.5 0.1 0.1 0.1 0.05 0.05 0</row>
+          <row>0.1 0.1 0.5 0.1 0.1 0.05 0.05 0</row>
+          <row>0.1 0.1 0.1 0.5 0.1 0.05 0.05 0</row>
+          <row>0.1 0.1 0.1 0.1 0.5 0.05 0.05 0</row>
+          <row>0.05 0.05 0.05 0.05 0.05 0.5 0.2 0.05</row>
+          <row>0.05 0.05 0.05 0.05 0.05 0.2 0.5 0.05</row>
+          <row>0    0    0    0    0    0.05 0.05 0.5</row>
+        </weights>
+      </YFlash>
+    </PE>
+
+    <PE id="2">
+      <YFlash rows="8" cols="8" signed="false">
+        <weights pos="true">
+          <row>0.2 0.2 0.2 0.2 0.1 0.05 0.05 0</row>
+          <row>0.2 0.3 0.2 0.1 0.1 0.05 0.05 0</row>
+          <row>0.2 0.2 0.3 0.1 0.1 0.05 0.05 0</row>
+          <row>0.2 0.1 0.1 0.3 0.1 0.05 0.05 0</row>
+          <row>0.1 0.1 0.1 0.1 0.3 0.1  0.1  0</row>
+          <row>0.05 0.05 0.05 0.05 0.1 0.3  0.2  0.1</row>
+          <row>0.05 0.05 0.05 0.05 0.1 0.2  0.3  0.1</row>
+          <row>0    0    0    0    0    0.1  0.1  0.3</row>
+        </weights>
+      </YFlash>
+    </PE>
+
+    <PE id="3">
+      <YFlash rows="8" cols="8" signed="false">
+        <weights pos="true">
+          <row>0.3 0.0 0.1 0.0 0.2 0.0 0.1 0.0</row>
+          <row>0.0 0.3 0.0 0.1 0.0 0.2 0.0 0.1</row>
+          <row>0.1 0.0 0.3 0.0 0.1 0.0 0.2 0.0</row>
+          <row>0.0 0.1 0.0 0.3 0.0 0.1 0.0 0.2</row>
+          <row>0.2 0.0 0.1 0.0 0.3 0.0 0.1 0.0</row>
+          <row>0.0 0.2 0.0 0.1 0.0 0.3 0.0 0.1</row>
+          <row>0.1 0.0 0.2 0.0 0.1 0.0 0.3 0.0</row>
+          <row>0.0 0.1 0.0 0.2 0.0 0.1 0.0 0.3</row>
+        </weights>
+      </YFlash>
+    </PE>
+  </Architecture>
+</NetworkConfig>
