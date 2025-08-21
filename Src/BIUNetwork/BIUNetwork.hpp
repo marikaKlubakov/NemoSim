@@ -18,5 +18,5 @@ private:
 	std::vector<BIULayer> m_vecLayers;
 	void setInputs(const std::vector<std::vector<std::vector<double>>>& inputs);
 	std::vector<std::vector<bool>> update();
-	EnergyTable* energyTable = nullptr; // Pointer to energy table for energy calculations
+	EnergyTable* m_energyTable = nullptr; // Pointer to energy table for energy calculations
 };

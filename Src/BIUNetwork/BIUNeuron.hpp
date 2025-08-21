@@ -10,27 +10,27 @@ public:
 	void setSynapticInputs(const std::vector<double>& inputs);
 	bool update();
 	double getVoltage() const;
-	std::vector<double> getVns() const { return m_Vn; }
+	std::vector<double> getVns() const { return m_Vns; }
 	std::vector<double> getSpikesVec() const { return m_spikes; }
-	std::vector<double> getVinec() const { return m_Vin; }
+	std::vector<double> getVinec() const { return m_Vins; }
     void setEnergyTable(EnergyTable* table) { m_energyTable = table; }
     double getTotalSynapticEnergy() const;
 private:
-	double VTH;
-	double VDD;
-	int refractoryTime;
-	double Cn;
-	double Cu;
-	double Vn;
+	double m_VTH;
+	double m_VDD;
+	int m_refractoryTime;
+	double m_Cn;
+	double m_Cu;
+	double m_Vn;
 	int cyclesLeft;
-	std::vector<double> synapticWeights;
-	std::vector<double> synapticInputs;
-	std::vector<double> synapticEnergy;
+	std::vector<double> m_synapticWeights;
+	std::vector<double> m_synapticInputs;
+	std::vector<double> m_synapticEnergy;
 
 	//output vetors for vn and spikes
 	std::vector<double> m_spikes;
-	std::vector<double> m_Vin;
-	std::vector<double> m_Vn;
+	std::vector<double> m_Vins;
+	std::vector<double> m_Vns;
 
     EnergyTable* m_energyTable = nullptr; // Pointer to shared energy table
 };

@@ -22,20 +22,20 @@ public:
 
 	
 private:
-	double clockFrequencyMHz;
-	unsigned int bitWidth;
-	unsigned int digitalCode;
-	unsigned int counter;
-	double clockPeriodNs;
-	unsigned int threshold;
+	double m_clockFrequencyMHz;
+	unsigned int m_bitWidth;
+	unsigned int m_digitalCode;
+	unsigned int m_counter;
+	double m_clockPeriodNs;
+	unsigned int m_threshold;
 
 	// Neuron-specific parameters
-	double spikeWidthNs;
-	double minSpikeIntervalNs;
-	double lastSpikeTimeNs;
-	double currentTimeNs;
+	double m_spikeWidthNs;
+	double m_minSpikeIntervalNs;
+	double m_lastSpikeTimeNs;
+	double m_currentTimeNs;
 
-	Mode mode;
+	Mode m_mode;
 
 	void updateThreshold();
 };

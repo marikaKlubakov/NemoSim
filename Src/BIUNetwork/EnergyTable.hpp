@@ -13,5 +13,5 @@ public:
     double getEnergyBySpike(int weight, bool spike_in) const;
 
 private:
-    std::vector<std::vector<double>> table; // [weight-1][spike_rate-1]
+    std::vector<std::vector<double>> m_table; // [weight-1][spike_rate-1]
 };

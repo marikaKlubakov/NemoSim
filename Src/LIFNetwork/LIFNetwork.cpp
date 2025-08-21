@@ -10,7 +10,12 @@
 LIFNetwork::LIFNetwork(NetworkParameters params)
 	: m_VDD(params.VDD), m_dt(params.dt)
 {
-	for (size_t i = 0; (i < params.YFlashWeights.size()) && params.YFlashWeights.size() != 0; ++i)
+	if (params.layerSizes.empty())
+	{
+		throw std::invalid_argument("LIFNetwork: layerSizes must not be empty.");
+	}
+
+	for (size_t i = 0; (i < params.YFlashWeights.size()); ++i)
 	{
 		m_yflashVec.emplace_back(params.YFlashWeights[i]);
 	}

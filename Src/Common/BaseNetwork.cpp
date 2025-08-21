@@ -10,7 +10,8 @@ void BaseNetwork::showProgressBar(std::size_t current, std::size_t total) const
     int pos = static_cast<int>(barWidth * progress);
 
     std::cout << "[";
-    for (int i = 0; i < barWidth; ++i) {
+    for (int i = 0; i < barWidth; ++i) 
+    {
         if (i < pos) std::cout << '=';
         else if (i == pos) std::cout << '>';
         else std::cout << ' ';

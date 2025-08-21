@@ -35,16 +35,18 @@
   * Instead of storing a selected index (mutable), the selected `sel` is supplied
   * at call site. This keeps methods const-correct inside const PEs.
   */
-class ColumnMux {
+class ColumnMux
+{
 public:
-    explicit ColumnMux(int fanin) : n_(fanin) {}
-    double routeAt(const std::vector<double>& columns, int sel) const {
-        if (sel < 0 || sel >= n_) throw std::out_of_range("ColumnMux::routeAt out of range");
+    explicit ColumnMux(int fanin) : m_fanin(fanin) {}
+    double routeAt(const std::vector<double>& columns, int sel) const 
+    {
+        if (sel < 0 || sel >= m_fanin) throw std::out_of_range("ColumnMux::routeAt out of range");
         return columns.at(static_cast<size_t>(sel));
     }
-    int size() const { return n_; }
+    int size() const { return m_fanin; }
 private:
-    int n_;
+    int m_fanin;
 };
 
 /**
@@ -53,19 +55,21 @@ private:
  *
  * Vc(T0) = (i_sum/C)*T0 ; dT = max(0, C*(Vc - Vth)/Idis)
  */
-class VTC {
+class VTC 
+{
 public:
     VTC(double C, double Idis, double Vth, double dt_lsb)
-        : C_(C), Idis_(Idis), Vth_(Vth), dtLSB_(dt_lsb) {
-    }
+        : m_C(C), m_Idis(Idis), m_Vth(Vth), m_dtLSB(dt_lsb) 
+    {}
 
-    double currentToDelay(double i_sum, double T0) const {
-        const double Vc = (i_sum / C_) * T0;
-        double dT = (C_ * (Vc - Vth_)) / Idis_;
+    double currentToDelay(double i_sum, double T0) const 
+    {
+        const double Vc = (i_sum / m_C) * T0;
+        double dT = (m_C * (Vc - m_Vth)) / m_Idis;
         if (dT < 0) dT = 0;
         return dT;
     }
-    double lsb() const { return dtLSB_; }
+    double lsb() const { return m_dtLSB; }
 
     // ---------- ADD THIS ----------
     struct Report {
@@ -82,7 +86,7 @@ public:
     // ------------------------------
 
 private:
-    double C_, Idis_, Vth_, dtLSB_;
+    double m_C, m_Idis, m_Vth, m_dtLSB;
 };
 
 /**
@@ -93,11 +97,11 @@ private:
  */
 class SAR_TDC {
 public:
-    explicit SAR_TDC(int nbits) : nbits_(nbits) {}
+    explicit SAR_TDC(int nbits) : m_nbits(nbits) {}
     int quantize(double dT, double dtLSB) const;
-    int bits() const { return nbits_; }
+    int bits() const { return m_nbits; }
 private:
-    int nbits_;
+    int m_nbits;
 };
 
 /**
@@ -108,14 +112,14 @@ private:
  */
 class DSA {
 public:
-    explicit DSA(int out_bits) : acc_(0), out_bits_(out_bits), bit_idx_(0) {}
-    void reset() { acc_ = 0; bit_idx_ = 0; }
-    void accumulate(int pMAC) { acc_ += (static_cast<int64_t>(pMAC) << bit_idx_); ++bit_idx_; }
-    int64_t value() const { return acc_; }
+    explicit DSA(int out_bits) : m_acc(0), m_out_bits(out_bits), m_bit_idx(0) {}
+    void reset() { m_acc = 0; m_bit_idx = 0; }
+    void accumulate(int pMAC) { m_acc += (static_cast<int64_t>(pMAC) << m_bit_idx); ++m_bit_idx; }
+    int64_t value() const { return m_acc; }
 private:
-    int64_t acc_;
-    int     out_bits_;
-    int     bit_idx_;
+    int64_t m_acc;
+    int     m_out_bits;
+    int     m_bit_idx;
 };
 
 /* ============ *
@@ -137,22 +141,22 @@ public:
     // Bit-serial (IMC) one bit-cycle: returns a TDC code per column for the given 0/1 mask.
     std::vector<double> computeBitwise(const std::vector<std::vector<uint8_t>>& activationBits) const;
 
-    int rows() const { return rows_; }
-    int cols() const { return cols_; }
+    int rows() const { return m_rows; }
+    int cols() const { return m_cols; }
 
 private:
     // Front-end
-    ANNYFlash yflash_;
-    int rows_ = 0;
-    int cols_ = 0;
+    ANNYFlash m_yflash;
+    int m_rows = 0;
+    int m_cols = 0;
 
     // Back-end chain
-    ColumnMux mux_;
-    VTC       vtc_;
-    SAR_TDC   tdc_;
+    ColumnMux m_mux;
+    VTC       m_vtc;
+    SAR_TDC   m_tdc;
 
     // Timing/quantization knobs
-    double T0_s_;     ///< precharge/integration window (from params.annVtcT0)
+    double m_T0_s;     ///< precharge/integration window (from params.annVtcT0)
 };
 
 /* ================= *
@@ -179,13 +183,13 @@ public:
     int64_t runBitSerialDSA(const std::vector<std::vector<std::vector<uint8_t>>>& bitplanes, int pe_idx);
 
     // Turn on verbose prints inside the IMC path (MUX/VTC/TDC per column).
-    void enableIMCTrace(bool on) { imcTrace_ = on; }
+    void enableIMCTrace(bool on) { m_imcTrace = on; }
 
 private:
     std::vector<PE> m_VecPEs;
 
     // Copy of global ANN knobs (useful for helpers/validation)
-    int    annBitSerialBits_ = 0;
-    int    annDsaOutBits_ = 0;
-    bool   imcTrace_ = false;
+    int    m_annBitSerialBits = 0;
+    int    m_annDsaOutBits = 0;
+    bool   m_imcTrace = false;
 };

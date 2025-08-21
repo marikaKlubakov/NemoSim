@@ -37,13 +37,13 @@ public:
         const std::vector<std::vector<double>>& Wneg);
 
     /// @return number of rows (wordlines).
-    int rows() const noexcept { return rows_; }
+    int getRows() const noexcept { return m_rows; }
 
     /// @return number of columns (bitlines).
-    int cols() const noexcept { return cols_; }
+    int getCols() const noexcept { return m_cols; }
 
     /// @return true if the instance models signed weights (dual cell).
-    bool isSigned() const noexcept { return has_signed_; }
+    bool isSigned() const noexcept { return m_has_signed; }
 
     /**
      * @brief Dense vector × matrix multiply (digital emulation of the array).
@@ -76,12 +76,12 @@ public:
 
 private:
     // Core storage
-    std::vector<std::vector<double>> Wpos_;
-    std::vector<std::vector<double>> Wneg_;   // only used when has_signed_ == true
+    std::vector<std::vector<double>> m_Wpos;
+    std::vector<std::vector<double>> m_Wneg;   // only used when m_has_signed_ == true
 
-    int rows_ = 0;
-    int cols_ = 0;
-    bool has_signed_ = false;
+    int m_rows = 0;
+    int m_cols = 0;
+    bool m_has_signed = false;
 
     // Internal helpers
     void validateDims_() const;
