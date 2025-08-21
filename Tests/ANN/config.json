@@ -1,0 +1,6 @@
+{
+    "output_directory": "c:\git19\NemoSim\/Tests/ANN/output/",
+    "xml_config_path": "c:\git19\NemoSim\Tests\ANN\/test.xml",
+    "data_input_file": "c:\git19\NemoSim\Tests\ANN\/input.txt",
+	"progress_interval_seconds": 2
+}

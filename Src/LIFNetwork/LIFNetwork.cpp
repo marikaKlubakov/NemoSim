@@ -10,7 +10,12 @@
 LIFNetwork::LIFNetwork(NetworkParameters params)
 	: m_VDD(params.VDD), m_dt(params.dt)
 {
-	for (size_t i = 0; (i < params.YFlashWeights.size()) && params.YFlashWeights.size() != 0; ++i)
+	if (params.layerSizes.empty())
+	{
+		throw std::invalid_argument("LIFNetwork: layerSizes must not be empty.");
+	}
+
+	for (size_t i = 0; (i < params.YFlashWeights.size()); ++i)
 	{
 		m_yflashVec.emplace_back(params.YFlashWeights[i]);
 	}
@@ -52,10 +57,10 @@ void LIFNetwork::feedForward(std::vector<double>& input)
 void LIFNetwork::printNetworkState(int timestep) const
 {
 	std::cout << "Time Step: " << timestep << std::endl;
-	for (size_t l = 0; l < m_layers.size(); ++l)
+	for (int l = 0; l < m_layers.size(); ++l)
 	{
 		std::cout << "Layer " << l << ":" << std::endl;
-		for (size_t i = 0; i < m_layers[l].getLayerSize(); ++i)
+		for (int i = 0; i < m_layers[l].getLayerSize(); ++i)
 		{
 			std::cout << "  Neuron " << i << " Vm: " << m_layers[l].getVm(i);
 			if (m_layers[l].hasSpiked(i)) std::cout << " (Spiked)";
@@ -69,17 +74,17 @@ void LIFNetwork::printNetworkState(int timestep) const
 void LIFNetwork::printNetworkToFile()
 {
 	std::cout << "printing network files " << std::endl;
-	for (size_t layerIdx = 0; layerIdx < m_layers.size(); ++layerIdx) {
-		size_t numNeurons = m_layers[layerIdx].getLayerSize();
+	for (int layerIdx = 0; layerIdx < m_layers.size(); ++layerIdx) {
+		int numNeurons = m_layers[layerIdx].getLayerSize();
 
-		for (size_t neuronIdx = 0; neuronIdx < numNeurons; ++neuronIdx) {
+		for (int neuronIdx = 0; neuronIdx < numNeurons; ++neuronIdx) {
 			std::vector<double> vms = m_layers[layerIdx].getVms(neuronIdx);
 			std::vector<double> Iin = m_layers[layerIdx].getIinVec(neuronIdx);
 			std::vector<double> vout = m_layers[layerIdx].getVoutVec(neuronIdx);
 
-			std::string vmsFile = "vms" + std::to_string(layerIdx) + std::to_string(neuronIdx) + ".txt";
-			std::string iinFile = "Iins" + std::to_string(layerIdx) + std::to_string(neuronIdx) + ".txt";
-			std::string voutFile = "Vouts" + std::to_string(layerIdx) + std::to_string(neuronIdx) + ".txt";
+			std::string vmsFile = "vms_" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
+			std::string iinFile = "iins_" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
+			std::string voutFile = "vouts_" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
 
 			std::ofstream vmsOut(vmsFile);
 			std::ofstream iinOut(iinFile);
@@ -110,62 +115,34 @@ void LIFNetwork::printNetworkToFile()
 
 }
 
-void showProgressBar(int current, int total) 
-{
-	int barWidth = 50;
-	float progress = static_cast<float>(current) / total;
-	int pos = static_cast<int>(barWidth * progress);
 
-	std::cout << "[";
-	for (int i = 0; i < barWidth; ++i) 
-	{
-		if (i < pos) std::cout << "=";
-		else if (i == pos) std::cout << ">";
-		else std::cout << " ";
-	}
-	std::cout << "] " << int(progress * 100.0) << " %\r";
-	std::cout.flush();
-}
 
  
 void LIFNetwork::run(std::ifstream& inputFile)
 {
 	std::string line;
 
-	if (!inputFile.is_open()) 
-	{
-		std::cerr << "Unable to open file" << std::endl;
-		return ;
+	if (!inputFile.is_open()) {
+		std::cerr << "Unable to open file\n";
+		return;
 	}
 
-	// First pass: count total lines
-	int totalLines = 0;
-	while (std::getline(inputFile, line)) 
-	{
-		++totalLines;
-	}
+	// use base helper (or keep your original counting code)
+	const std::size_t totalLines = countLines(inputFile);
 
-	// Reset file to beginning
-	inputFile.clear();
-	inputFile.seekg(0);
-
-	// Second pass: read and process with progress
-	int currentLine = 0;
-	while (std::getline(inputFile, line)) 
-	{
+	std::size_t currentLine = 0;
+	while (std::getline(inputFile, line)) {
 		++currentLine;
 
 		std::vector<double> values;
 		std::stringstream ss(line);
 		double value;
-		while (ss >> value) {
-			values.push_back(value);
-		}
+		while (ss >> value) values.push_back(value);
 
 		feedForward(values);
-		showProgressBar(currentLine, totalLines);
+		showProgressBar(currentLine, totalLines);  // now from BaseNetwork
 	}
 
-	std::cout << std::endl << "Finished executing." << std::endl;
+	std::cout << "\nFinished executing.\n";
 	inputFile.close();
 }
