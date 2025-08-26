@@ -10,18 +10,16 @@ endif()
 project(LIFNetwork LANGUAGES C CXX)
 
 set(SOURCES 
-    YFlash.cpp
-    ANNYFlash.cpp
+    DS.cpp
 )
 
 set(HEADERS 
-    YFlash.hpp
-    ANNYFlash.hpp
+    DS.hpp
 )
 
 # Create a static library instead of a shared one
-add_library(YFlash STATIC ${SOURCES} ${HEADERS})
+add_library(DS STATIC ${SOURCES} ${HEADERS})
 
 # Allow NEMOSIM to use LIFNetwork headers
-target_include_directories(LIFNetwork PUBLIC ${CMAKE_SOURCE_DIR}/YFlash)
+target_include_directories(LIFNetwork PUBLIC ${CMAKE_SOURCE_DIR}/DS)
 
