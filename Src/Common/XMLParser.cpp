@@ -73,8 +73,8 @@ bool XMLParser::parse(const std::string& filename, NetworkParameters& params) {
         BIUNetworkParser(BIU, arch, params);
     }
     if (arch) {
-        if (auto* yflat = arch->FirstChildElement("YFlash")) {
-            // legacy single YFlash under <Architecture>
+        // Support multiple YFlash elements under <Architecture>
+        for (auto* yflat = arch->FirstChildElement("YFlash"); yflat != nullptr; yflat = yflat->NextSiblingElement("YFlash")) {
             YFlashParser(yflat, params);
         }
     }
@@ -261,15 +261,27 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
 
 
 void XMLParser::YFlashParser(XMLElement* YFlash, NetworkParameters& params) {
-    // Legacy: parse a single matrix under <Architecture><YFlash>...</YFlash>
-    std::vector<std::vector<double>> W;
-    for (auto* row = YFlash->FirstChildElement("row"); row != nullptr; row = row->NextSiblingElement("row")) {
-        std::vector<double> r;
-        std::istringstream iss(row->GetText() ? row->GetText() : "");
-        double x; while (iss >> x) r.push_back(x);
-        W.push_back(std::move(r));
+    auto* weightsElem = YFlash->FirstChildElement("weights");
+    std::vector<std::vector<double>> layerWeights;
+    if (weightsElem) {
+        for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row")) {
+            const char* rowText = rowElem->GetText();
+            if (!rowText) {
+                std::cerr << "Warning: Empty <row> in weights\n";
+                continue;
+            }
+            std::istringstream iss(rowText);
+            std::vector<double> rowWeights;
+            double w;
+            while (iss >> w)
+                rowWeights.push_back(w);
+            layerWeights.push_back(rowWeights);
+        }
     }
-    if (!W.empty()) params.YFlashWeights.push_back(std::move(W));
+    else {
+        std::cerr << "Warning: <weights> element missing in <synapses>\n";
+    }
+    params.YFlashWeights.push_back(layerWeights);
 }
 
 // ---------------- NEW: ANN parsers ----------------

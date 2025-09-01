@@ -35,17 +35,13 @@ YFlash::YFlash(const std::vector<std::vector<double>>& input_matrix)
  */
 std::vector<double> YFlash::step(const std::vector<double>& voltages) const 
 {
-    if (voltages.size() != m_cols)
-    {
-        throw std::invalid_argument("Voltage vector size does not match matrix column size.");
-    }
 
-    std::vector<double> currents(m_rows, 0.0);
+    std::vector<double> currents(m_cols, 0.0);
     for (size_t i = 0; i < m_rows; ++i)
     {
         for (size_t j = 0; j < m_cols; ++j)
         {
-            currents[i] += m_weights[i][j] * voltages[j];
+            currents[j] += m_weights[i][j] * voltages[i];
         }
     }
     return currents;
