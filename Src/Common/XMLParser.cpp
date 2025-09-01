@@ -115,7 +115,8 @@ static ConfigKey getConfigKey(const std::string& key)
         {"xml_config_path", ConfigKey::XmlConfigPath},
         {"sup_xml_config_path", ConfigKey::SupXmlConfigPath},
         {"data_input_file", ConfigKey::DataInputFile},
-        {"energy_table_path", ConfigKey::CsvPath},
+        {"neuron_energy_table_path", ConfigKey::NeuronEnergyCsvPath},
+        {"synapses_energy_table_path", ConfigKey::SynapsesEnergyCsvPath},
         {"progress_interval_seconds", ConfigKey::ProgressIntervalSeconds}
     };
 
@@ -173,8 +174,11 @@ Config XMLParser::parseConfigFromFile(const std::string& filePath)
         case ConfigKey::DataInputFile:
             config.dataInputPath = value;
             break;
-        case ConfigKey::CsvPath:
-            config.EnergyCsvFile = value;
+        case ConfigKey::NeuronEnergyCsvPath:
+            config.neuronEnergyCsvPath = value;
+            break;
+        case ConfigKey::SynapsesEnergyCsvPath:
+            config.synapsesEnergyCsvPath = value;
             break;
         case ConfigKey::ProgressIntervalSeconds:
             config.progressIntervalSeconds = std::stoi(value);

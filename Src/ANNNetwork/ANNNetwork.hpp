@@ -18,7 +18,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "networkParams.hpp"
+#include "../NemoSimEngine/networkParams.hpp"
 #include "ANNYFlash.hpp"
 
  // Adjust include path to your project layout if needed.

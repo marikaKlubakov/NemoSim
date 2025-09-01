@@ -25,7 +25,10 @@ private:
 	int cyclesLeft;
 	std::vector<double> m_synapticWeights;
 	std::vector<double> m_synapticInputs;
+
+	// energy vectors
 	std::vector<double> m_synapticEnergy;
+	double m_neuronEnergy;
 
 	//output vetors for vn and spikes
 	std::vector<double> m_spikes;
