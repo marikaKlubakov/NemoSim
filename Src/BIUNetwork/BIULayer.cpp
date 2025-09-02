@@ -33,9 +33,15 @@ unsigned int BIULayer::getLayerSize() const
 	return m_neurons.size();
 }
 
-double BIULayer::getTotalLayerEnergy() const
+double BIULayer::getTotalLayerSynapsesEnergy() const
 {
     double sum = 0.0;
     for (const auto& neuron : m_neurons) sum += neuron.getTotalSynapticEnergy();
     return sum;
+}
+double BIULayer::getTotalLayerNeuronsEnergy() const
+{
+	double sum = 0.0;
+	for (const auto& neuron : m_neurons) sum += neuron.getNeuronEnergy();
+	return sum;
 }

@@ -81,8 +81,9 @@ static int vnToCol(double vn) {
 
 double EnergyTable::getNeuronEnergy(double vth, double vn) const {
     if (m_neuronTable.empty()) return 0.0;
-    int row = vthToRow(vth);
-    int col = vnToCol(vn);
+	// Convert V to mV and map to indices
+    int row = vthToRow(vth * 1000);
+    int col = vnToCol(vn * 1000);
     if (row < 0 || row >= static_cast<int>(m_neuronTable.size())) return 0.0;
     if (col < 0 || col >= static_cast<int>(m_neuronTable[row].size())) return 0.0;
     return m_neuronTable[row][col];

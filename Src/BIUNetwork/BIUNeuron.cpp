@@ -81,3 +81,8 @@ double BIUNeuron::getTotalSynapticEnergy() const
     for (double e : m_synapticEnergy) sum += e;
     return sum;
 }
+
+double BIUNeuron::getNeuronEnergy() const
+{
+    return m_neuronEnergy;
+}

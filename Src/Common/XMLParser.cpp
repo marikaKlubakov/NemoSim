@@ -339,7 +339,7 @@ void XMLParser::ANNArchitectureParser(XMLElement* arch, NetworkParameters& param
     for (auto* yf = arch->FirstChildElement("YFlash"); yf != nullptr; yf = yf->NextSiblingElement("YFlash")) {
         NetworkParameters::PEBlock peb;
         peb.id = static_cast<int>(params.annPEs.size());
-        ANNParseYFlash(yf, peb.yflash);
+        ANNParseYFlash(yf, peb.yflash, -1);
         params.annPEs.push_back(std::move(peb));
     }
 }
@@ -348,8 +348,9 @@ void XMLParser::ANNParsePE(XMLElement* peElem, NetworkParameters& params)
 {
     NetworkParameters::PEBlock pe;
     peElem->QueryIntAttribute("id", &pe.id);
-    if (auto* yf = peElem->FirstChildElement("YFlash")) {
-        ANNParseYFlash(yf, pe.yflash);
+    if (auto* yf = peElem->FirstChildElement("YFlash")) 
+    {
+        ANNParseYFlash(yf, pe.yflash, pe.id);
         params.annPEs.push_back(std::move(pe));
     }
     else {
@@ -357,7 +358,7 @@ void XMLParser::ANNParsePE(XMLElement* peElem, NetworkParameters& params)
     }
 }
 
-void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBlock& yb)
+void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBlock& yb ,int pe_id)
 {
     yfElem->QueryIntAttribute("rows", &yb.rows);
     yfElem->QueryIntAttribute("cols", &yb.cols);
@@ -367,13 +368,20 @@ void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBloc
         yb.isSigned = (v == "true" || v == "1" || v == "yes");
     }
 
-    auto parseWeights = [](XMLElement* weightsElem) -> std::vector<std::vector<double>> {
+    auto parseWeights = [](XMLElement* weightsElem, int& rowIdxOut) -> std::vector<std::vector<double>>
+    {
         std::vector<std::vector<double>> W;
         if (!weightsElem) return W;
         for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row")) {
             std::vector<double> r;
             const char* txt = rowElem->GetText();
-            std::istringstream iss(txt ? txt : "");
+            if (!txt) 
+            {
+                std::ostringstream oss;
+                oss << "Error: Empty <row> in YFlash weights at row " << rowIdx;
+                throw std::runtime_error(oss.str());
+            }
+            std::istringstream iss(txt);
             double x; while (iss >> x) r.push_back(x);
             W.push_back(std::move(r));
         }
@@ -394,11 +402,13 @@ void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBloc
             isNeg = (v == "true" || v == "1" || v == "yes");
         }
 
-        if (isPos || (!yb.isSigned && yb.Wpos.empty())) {
-            yb.Wpos = parseWeights(w);
+        int rowIdx = 0;
+        if (isPos || (!yb.isSigned && yb.Wpos.empty())) 
+        {
+            yb.Wpos = parseWeights(w, rowIdx);
         }
         if (isNeg) {
-            yb.Wneg = parseWeights(w);
+            yb.Wneg = parseWeights(w, rowIdx);
         }
     }
 

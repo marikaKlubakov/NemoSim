@@ -15,6 +15,7 @@ public:
 	std::vector<double> getVinec() const { return m_Vins; }
     void setEnergyTable(EnergyTable* table) { m_energyTable = table; }
     double getTotalSynapticEnergy() const;
+    double getNeuronEnergy() const;
 private:
 	double m_VTH;
 	double m_VDD;
@@ -28,7 +29,7 @@ private:
 
 	// energy vectors
 	std::vector<double> m_synapticEnergy;
-	double m_neuronEnergy;
+	double m_neuronEnergy = 0;
 
 	//output vetors for vn and spikes
 	std::vector<double> m_spikes;

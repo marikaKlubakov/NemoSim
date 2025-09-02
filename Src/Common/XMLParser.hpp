@@ -34,7 +34,7 @@ private:
     void ANNNetworkParser(tinyxml2::XMLElement* ANN, NetworkParameters& params);
     void ANNArchitectureParser(tinyxml2::XMLElement* arch, NetworkParameters& params);
     void ANNParsePE(tinyxml2::XMLElement* peElem, NetworkParameters& params);
-    void ANNParseYFlash(tinyxml2::XMLElement* yfElem, NetworkParameters::YFlashBlock& yb);
+    void ANNParseYFlash(tinyxml2::XMLElement* yfElem, NetworkParameters::YFlashBlock& yb, int pe_id);
 
     // --------------------- small helpers ------------------------
     static bool parseDouble(tinyxml2::XMLElement* parent, const char* tag, double& out);
