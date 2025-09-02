@@ -18,7 +18,7 @@ LIFNetwork::LIFNetwork(NetworkParameters params)
 
 	for (size_t i = 0; (i < params.YFlashWeights.size()); ++i)
 	{
-		m_yflashVec.emplace_back(params.YFlashWeights[i]);
+		m_yflashVec.emplace_back(params.YFlashWeights[i], i);
 	}
 	for (int size : params.layerSizes)
 	{
