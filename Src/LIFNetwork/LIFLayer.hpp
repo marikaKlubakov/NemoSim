@@ -20,6 +20,7 @@ public:
 	std::vector<double> getIinVec(int index) const { return m_neurons[index].getIinVec(); }
 	std::vector<double> getVoutVec(int index) const { return m_neurons[index].getVoutVec(); }
 	bool hasSpiked(int index) const { return m_neurons[index].hasSpiked(); }
+	YFlash* getYFlash() const { return m_yflash; }
 private:
 	std::vector<LIFNeuron> m_neurons;
 	std::vector<std::vector<double>> m_weights;

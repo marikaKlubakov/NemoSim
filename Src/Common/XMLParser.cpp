@@ -17,17 +17,27 @@ static std::string trim(const std::string& str)
     return (start == std::string::npos) ? "" : str.substr(start, end - start + 1);
 }
 
-bool XMLParser::parseDouble(XMLElement* parent, const char* tag, double& out) {
-    if (!parent) return false;
-    if (auto* e = parent->FirstChildElement(tag)) {
+bool XMLParser::parseDouble(XMLElement* parent, const char* tag, double& out)
+{
+    if (!parent)
+    {
+        return false;
+    }
+    if (auto* e = parent->FirstChildElement(tag))
+    {
         return (e->QueryDoubleText(&out) == XML_SUCCESS);
     }
     return false;
 }
 
-bool XMLParser::parseInt(XMLElement* parent, const char* tag, int& out) {
-    if (!parent) return false;
-    if (auto* e = parent->FirstChildElement(tag)) {
+bool XMLParser::parseInt(XMLElement* parent, const char* tag, int& out)
+{
+    if (!parent)
+    {
+        return false;
+    }
+    if (auto* e = parent->FirstChildElement(tag))
+    {
         return (e->QueryIntText(&out) == XML_SUCCESS);
     }
     return false;
@@ -35,28 +45,32 @@ bool XMLParser::parseInt(XMLElement* parent, const char* tag, int& out) {
 
 // ---------------- public: XML entry ----------------
 
-bool XMLParser::parse(const std::string& filename, NetworkParameters& params) {
+bool XMLParser::parse(const std::string& filename, NetworkParameters& params)
+{
     XMLDocument doc;
-    if (doc.LoadFile(filename.c_str()) != XML_SUCCESS) {
+    if (doc.LoadFile(filename.c_str()) != XML_SUCCESS)
+    {
         std::cerr << "Error loading XML file '" << filename << "': " << doc.ErrorStr() << std::endl;
         return false;
     }
 
     auto* root = doc.FirstChildElement("NetworkConfig");
-    if (!root) {
+    if (!root)
+    {
         std::cerr << "Error: No <NetworkConfig> root element found.\n";
         return false;
     }
 
     const char* typeAttr = root->Attribute("type");
-    if (!typeAttr) {
+    if (!typeAttr)
+    {
         std::cerr << "Error: <NetworkConfig> missing 'type' attribute.\n";
         return false;
     }
 
-    // Map type → enum using the map defined in networkParams.hpp
     auto it = StringToNetworkType.find(typeAttr);
-    if (it == StringToNetworkType.end()) {
+    if (it == StringToNetworkType.end())
+    {
         std::cerr << "Error: Unknown network type '" << typeAttr << "'.\n";
         return false;
     }
@@ -65,28 +79,34 @@ bool XMLParser::parse(const std::string& filename, NetworkParameters& params) {
 
     auto* arch = root->FirstChildElement("Architecture");
 
-    // --- legacy paths (kept) ---
-    if (auto* LIF = root->FirstChildElement("LIFNetwork")) {
+    if (auto* LIF = root->FirstChildElement("LIFNetwork"))
+    {
         LIFNetworkParser(LIF, arch, params);
     }
-    if (auto* BIU = root->FirstChildElement("BIUNetwork")) {
+    if (auto* BIU = root->FirstChildElement("BIUNetwork"))
+    {
         BIUNetworkParser(BIU, arch, params);
     }
-    if (arch) {
-        if (auto* yflat = arch->FirstChildElement("YFlash")) {
-            // legacy single YFlash under <Architecture>
-            YFlashParser(yflat, params);
+    if (arch)
+    {
+		int yFlashIdnex = 0;
+        for (auto* yflashElem = arch->FirstChildElement("YFlash"); yflashElem != nullptr; yflashElem = yflashElem->NextSiblingElement("YFlash"), yFlashIdnex++)
+        {
+            YFlashParser(yflashElem, params, yFlashIdnex);
         }
     }
 
-    // --- NEW: ANN path ---
-    if (auto* ANN = root->FirstChildElement("ANNNetwork")) {
+    if (auto* ANN = root->FirstChildElement("ANNNetwork"))
+    {
         ANNNetworkParser(ANN, params);
-        if (arch) ANNArchitectureParser(arch, params);
+        if (arch)
+        {
+            ANNArchitectureParser(arch, params);
+        }
     }
 
-    // Optional summary
-    if (params.networkType == NetworkTypes::ANNNetworkType) {
+    if (params.networkType == NetworkTypes::ANNNetworkType)
+    {
         std::cout << "ANN: VDD=" << params.annVDD
             << " ClockHz=" << params.annClockHz
             << " BitSerialBits=" << params.annBitSerialBits << "\n";
@@ -192,7 +212,6 @@ Config XMLParser::parseConfigFromFile(const std::string& filePath)
 // ---------------- legacy parsers (kept, minimal but safe) ----------------
 
 void XMLParser::LIFNetworkParser(XMLElement* LIF, XMLElement* arch, NetworkParameters& params) {
-    // Pull a typical set used by LIF; ignore if missing (keep defaults).
     parseDouble(LIF, "Cm", params.Cm);
     parseDouble(LIF, "Cf", params.Cf);
     parseDouble(LIF, "VDD", params.VDD);
@@ -200,44 +219,68 @@ void XMLParser::LIFNetworkParser(XMLElement* LIF, XMLElement* arch, NetworkParam
     parseDouble(LIF, "dt", params.dt);
     parseDouble(LIF, "IR", params.IR);
 
-    // Example topology (optional)
-    if (arch && params.networkType == NetworkTypes::LIFNetworkType) {
-        for (auto* layer = arch->FirstChildElement("Layer"); layer != nullptr; layer = layer->NextSiblingElement("Layer")) {
+    if (arch && params.networkType == NetworkTypes::LIFNetworkType) 
+    {
+        int layerIdx = 0;
+        for (auto* layer = arch->FirstChildElement("Layer"); layer != nullptr; layer = layer->NextSiblingElement("Layer"), ++layerIdx) 
+        {
             int size;
             if (layer->QueryIntAttribute("size", &size) == tinyxml2::XML_SUCCESS)
+            { 
                 params.layerSizes.push_back(size);
-            else {
-                throw std::runtime_error("Error: Missing or invalid 'size' in LIF <Layer>");
+            }
+            else
+            {
+                std::ostringstream oss;
+                oss << "Error: Missing or invalid 'size' in LIF <Layer> at index " << layerIdx;
+                throw std::runtime_error(oss.str());
             }
         }
     }
 }
 
-void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParameters& params) {
+void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParameters& params) 
+{
     parseDouble(BIU, "fclk", params.fclk);
-    parseDouble(BIU, "Rleak", params.Rleak);
+    parseDouble(BIU, "VTh", params.VTh);
+    parseDouble(BIU, "RLeak", params.Rleak);
+    parseDouble(BIU, "VDD", params.VDD);
     parseDouble(BIU, "Cn", params.Cn);
     parseDouble(BIU, "Cu", params.Cu);
     parseDouble(BIU, "refractory", params.refractory);
 
-    // (Optional) BIU weights layer-by-layer (kept idiomatically)
-    if (arch && params.networkType == NetworkTypes::BIUNetworkType) {
-        for (auto* layer = arch->FirstChildElement("Layer"); layer != nullptr; layer = layer->NextSiblingElement("Layer")) {
+    if (arch && params.networkType == NetworkTypes::BIUNetworkType)
+    {
+        int layerIdx = 0;
+        for (auto* layer = arch->FirstChildElement("Layer"); layer != nullptr; layer = layer->NextSiblingElement("Layer"), ++layerIdx) 
+        {
             int size;
             if (layer->QueryIntAttribute("size", &size) == tinyxml2::XML_SUCCESS)
+            {
                 params.layerSizes.push_back(size);
-            else {
-                throw std::runtime_error("Error: Missing or invalid 'size' in BIU <Layer>");
+            }    
+            else
+            {
+                std::ostringstream oss;
+                oss << "Error: Missing or invalid 'size' in BIU <Layer> at index " << layerIdx;
+                throw std::runtime_error(oss.str());
             }
             auto* synapses = layer->FirstChildElement("synapses");
-            if (synapses) {
+            if (synapses) 
+            {
                 auto* weightsElem = synapses->FirstChildElement("weights");
                 std::vector<std::vector<double>> layerWeights;
-                if (weightsElem) {
-                    for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row")) {
+                if (weightsElem) 
+                {
+                    int rowIdx = 0;
+                    for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row"), ++rowIdx) 
+                    {
                         const char* rowText = rowElem->GetText();
-                        if (!rowText) {
-                            throw std::runtime_error("Error: Empty <row> in weights");
+                        if (!rowText) 
+                        {
+                            std::ostringstream oss;
+                            oss << "Error: Empty <row> in weights at layer " << layerIdx << ", row " << rowIdx;
+                            throw std::runtime_error(oss.str());
                         }
                         std::istringstream iss(rowText);
                         std::vector<double> rowWeights;
@@ -247,30 +290,63 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
                         layerWeights.push_back(rowWeights);
                     }
                 }
-                else {
-                    throw std::runtime_error("Error: <weights> element missing in <synapses>");
+                else 
+                {
+                    std::ostringstream oss;
+                    oss << "Error: <weights> element missing in <synapses> at layer " << layerIdx;
+                    throw std::runtime_error(oss.str());
                 }
                 params.allWeights.push_back(layerWeights);
             }
-            else {
-                throw std::runtime_error("Error: <synapses> missing in <Layer>");
+            else 
+            {
+                std::ostringstream oss;
+                oss << "Error: <synapses> missing in <Layer> at index " << layerIdx;
+                throw std::runtime_error(oss.str());
             }
         }
     }
 }
 
+void XMLParser::YFlashParser(XMLElement* YFlash, NetworkParameters& params, int yFlashIndex)
+{
+    auto* weightsElem = YFlash->FirstChildElement("weights");
+    std::vector<std::vector<double>> layerWeights;
+    if (weightsElem)
+    {
+        int rowIdx = 0;
+        for (auto* rowElem = weightsElem->FirstChildElement("row");
+            rowElem != nullptr;
+            rowElem = rowElem->NextSiblingElement("row"), ++rowIdx)
+        {
+            const char* rowText = rowElem->GetText();
+            if (!rowText)
+            {
+                std::ostringstream oss;
+                oss << "Error: Empty <row> in <weights> at row "
+                    << rowIdx << " (YFlash index " << yFlashIndex << ")";
+                throw std::runtime_error(oss.str());
+            }
 
-void XMLParser::YFlashParser(XMLElement* YFlash, NetworkParameters& params) {
-    // Legacy: parse a single matrix under <Architecture><YFlash>...</YFlash>
-    std::vector<std::vector<double>> W;
-    for (auto* row = YFlash->FirstChildElement("row"); row != nullptr; row = row->NextSiblingElement("row")) {
-        std::vector<double> r;
-        std::istringstream iss(row->GetText() ? row->GetText() : "");
-        double x; while (iss >> x) r.push_back(x);
-        W.push_back(std::move(r));
+            std::istringstream iss(rowText);
+            std::vector<double> rowWeights;
+            double w;
+            while (iss >> w)
+                rowWeights.push_back(w);
+
+            layerWeights.push_back(rowWeights);
+        }
     }
-    if (!W.empty()) params.YFlashWeights.push_back(std::move(W));
+    else
+    {
+        std::ostringstream oss;
+        oss << "Error: <weights> element missing in <synapses> "
+            << "(YFlash index " << yFlashIndex << ")";
+        throw std::runtime_error(oss.str());
+    }
+    params.YFlashWeights.push_back(layerWeights);
 }
+
 
 // ---------------- NEW: ANN parsers ----------------
 
@@ -282,9 +358,12 @@ void XMLParser::ANNNetworkParser(XMLElement* ANN, NetworkParameters& params)
     parseInt(ANN, "BitSerialBits", params.annBitSerialBits);
 
     // MUX
-    if (auto* mux = ANN->FirstChildElement("MUX")) {
-        if (auto* s = mux->FirstChildElement("ShareAcrossColumns")) {
-            if (const char* t = s->GetText()) {
+    if (auto* mux = ANN->FirstChildElement("MUX")) 
+    {
+        if (auto* s = mux->FirstChildElement("ShareAcrossColumns")) 
+        {
+            if (const char* t = s->GetText()) 
+            {
                 std::string v = t; std::transform(v.begin(), v.end(), v.begin(), ::tolower);
                 params.annMuxShareAcrossColumns = (v == "true" || v == "1" || v == "yes");
             }
@@ -293,7 +372,8 @@ void XMLParser::ANNNetworkParser(XMLElement* ANN, NetworkParameters& params)
     }
 
     // VTC
-    if (auto* vtc = ANN->FirstChildElement("VTC")) {
+    if (auto* vtc = ANN->FirstChildElement("VTC")) 
+    {
         parseDouble(vtc, "C", params.annVtcC);
         parseDouble(vtc, "Idis", params.annVtcIdis);
         parseDouble(vtc, "Vth", params.annVtcVth);
@@ -302,12 +382,14 @@ void XMLParser::ANNNetworkParser(XMLElement* ANN, NetworkParameters& params)
     }
 
     // TDC
-    if (auto* tdc = ANN->FirstChildElement("TDC")) {
+    if (auto* tdc = ANN->FirstChildElement("TDC")) 
+    {
         parseInt(tdc, "Bits", params.annTdcBits);
     }
 
     // DSA
-    if (auto* dsa = ANN->FirstChildElement("DSA")) {
+    if (auto* dsa = ANN->FirstChildElement("DSA")) 
+    {
         parseInt(dsa, "OutBits", params.annDsaOutBits);
     }
 }
@@ -315,15 +397,17 @@ void XMLParser::ANNNetworkParser(XMLElement* ANN, NetworkParameters& params)
 void XMLParser::ANNArchitectureParser(XMLElement* arch, NetworkParameters& params)
 {
     // Preferred: <PE> blocks
-    for (auto* pe = arch->FirstChildElement("PE"); pe != nullptr; pe = pe->NextSiblingElement("PE")) {
+    for (auto* pe = arch->FirstChildElement("PE"); pe != nullptr; pe = pe->NextSiblingElement("PE")) 
+    {
         ANNParsePE(pe, params);
     }
 
     // Fallback: allow bare <YFlash> directly under <Architecture>
-    for (auto* yf = arch->FirstChildElement("YFlash"); yf != nullptr; yf = yf->NextSiblingElement("YFlash")) {
+    for (auto* yf = arch->FirstChildElement("YFlash"); yf != nullptr; yf = yf->NextSiblingElement("YFlash")) 
+    {
         NetworkParameters::PEBlock peb;
         peb.id = static_cast<int>(params.annPEs.size());
-        ANNParseYFlash(yf, peb.yflash);
+        ANNParseYFlash(yf, peb.yflash, -1);
         params.annPEs.push_back(std::move(peb));
     }
 }
@@ -331,71 +415,97 @@ void XMLParser::ANNArchitectureParser(XMLElement* arch, NetworkParameters& param
 void XMLParser::ANNParsePE(XMLElement* peElem, NetworkParameters& params)
 {
     NetworkParameters::PEBlock pe;
+    int peIdx = static_cast<int>(params.annPEs.size());
     peElem->QueryIntAttribute("id", &pe.id);
-    if (auto* yf = peElem->FirstChildElement("YFlash")) {
-        ANNParseYFlash(yf, pe.yflash);
+    if (auto* yf = peElem->FirstChildElement("YFlash")) 
+    {
+        ANNParseYFlash(yf, pe.yflash, pe.id);
         params.annPEs.push_back(std::move(pe));
     }
-    else {
-        throw std::runtime_error("Error: <PE> without <YFlash> encountered.");
+    else 
+    {
+        std::ostringstream oss;
+        oss << "Error: <PE> without <YFlash> encountered at PE index " << peIdx;
+        throw std::runtime_error(oss.str());
     }
 }
 
-void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBlock& yb)
+void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBlock& yb ,int pe_id)
 {
     yfElem->QueryIntAttribute("rows", &yb.rows);
     yfElem->QueryIntAttribute("cols", &yb.cols);
 
-    if (const char* s = yfElem->Attribute("signed")) {
+    if (const char* s = yfElem->Attribute("signed")) 
+    {
         std::string v = s; std::transform(v.begin(), v.end(), v.begin(), ::tolower);
         yb.isSigned = (v == "true" || v == "1" || v == "yes");
     }
 
-    auto parseWeights = [](XMLElement* weightsElem) -> std::vector<std::vector<double>> {
+    auto parseWeights = [](XMLElement* weightsElem, int& rowIdxOut, int pe_id) -> std::vector<std::vector<double>>
+    {
         std::vector<std::vector<double>> W;
         if (!weightsElem) return W;
-        for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row")) {
+        int rowIdx = 0;
+        for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row"), ++rowIdx) 
+        {
             std::vector<double> r;
             const char* txt = rowElem->GetText();
-            std::istringstream iss(txt ? txt : "");
+            if (!txt) 
+            {
+                std::ostringstream oss;
+                oss << "Error: Empty <row> in YFlash weights at row " << rowIdx << "in PE Id " << pe_id;
+                throw std::runtime_error(oss.str());
+            }
+            std::istringstream iss(txt);
             double x; while (iss >> x) r.push_back(x);
             W.push_back(std::move(r));
         }
+        rowIdxOut = rowIdx;
         return W;
-        };
+    };
 
-    // Accept unsigned (single <weights> or <weights pos="true">)
-    // and signed (<weights pos="true"> + <weights neg="true">)
-    for (auto* w = yfElem->FirstChildElement("weights"); w != nullptr; w = w->NextSiblingElement("weights")) {
+    for (auto* w = yfElem->FirstChildElement("weights"); w != nullptr; w = w->NextSiblingElement("weights")) 
+    {
         bool isPos = false, isNeg = false;
 
-        if (const char* posAttr = w->Attribute("pos")) {
+        if (const char* posAttr = w->Attribute("pos")) 
+        {
             std::string v = posAttr; std::transform(v.begin(), v.end(), v.begin(), ::tolower);
             isPos = (v == "true" || v == "1" || v == "yes");
         }
-        if (const char* negAttr = w->Attribute("neg")) {
+        if (const char* negAttr = w->Attribute("neg")) 
+        {
             std::string v = negAttr; std::transform(v.begin(), v.end(), v.begin(), ::tolower);
             isNeg = (v == "true" || v == "1" || v == "yes");
         }
 
-        if (isPos || (!yb.isSigned && yb.Wpos.empty())) {
-            yb.Wpos = parseWeights(w);
+        int rowIdx = 0;
+        if (isPos || (!yb.isSigned && yb.Wpos.empty())) 
+        {
+            yb.Wpos = parseWeights(w, rowIdx, pe_id);
         }
         if (isNeg) {
-            yb.Wneg = parseWeights(w);
+            yb.Wneg = parseWeights(w, rowIdx, pe_id);
         }
     }
 
-    // Non-fatal sanity
     if (!yb.Wpos.empty()) {
         int cols = static_cast<int>(yb.Wpos.front().size());
-        for (auto& r : yb.Wpos) {
-            if (static_cast<int>(r.size()) != cols) {
-                throw std::runtime_error("Error: YFlash Wpos is not rectangular");
+        for (size_t r = 0; r < yb.Wpos.size(); ++r) 
+        {
+            if (static_cast<int>(yb.Wpos[r].size()) != cols) 
+            {
+                std::ostringstream oss;
+                oss << "Error: YFlash Wpos is not rectangular at row " << r;
+                throw std::runtime_error(oss.str());
             }
         }
     }
-    if (yb.isSigned && !yb.Wneg.empty() && yb.Wneg.size() != yb.Wpos.size()) {
-        throw std::runtime_error("Error: YFlash Wneg rows != Wpos rows");
+    if (yb.isSigned && !yb.Wneg.empty() && yb.Wneg.size() != yb.Wpos.size()) 
+    {
+        std::ostringstream oss;
+        oss << "Error: YFlash Wneg rows != Wpos rows (Wneg rows: " << yb.Wneg.size()
+            << ", Wpos rows: " << yb.Wpos.size() << ")";
+        throw std::runtime_error(oss.str());
     }
 }

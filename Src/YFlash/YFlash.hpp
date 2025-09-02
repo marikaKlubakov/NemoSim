@@ -25,7 +25,7 @@ public:
      * @param input_matrix  Rectangular matrix [rows][cols] of weights (must be non-empty).
      * @throws std::invalid_argument if the matrix is empty or not rectangular.
      */
-    YFlash(const std::vector<std::vector<double>>& input_matrix);
+    YFlash(const std::vector<std::vector<double>>& input_matrix, int index = -1); // Add index parameter
 
     /**
      * @brief Perform a digital vector-matrix multiplication: y = W * x.
@@ -40,6 +40,9 @@ public:
      */
     void print() const;
 
+    void setIndex(int index) { m_index = index; }
+    int getIndex() const { return m_index; }
+
     /// The underlying weight matrix [rows][cols].
     std::vector<std::vector<double>> m_weights;
 
@@ -48,5 +51,7 @@ public:
 
     /// Number of columns (bitlines).
     size_t m_cols;
+private:
+    int m_index = -1; // Add this member
 };
 

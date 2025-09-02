@@ -3,6 +3,7 @@
 #include <random>
 #include <string>
 #include <fstream>
+#include <sstream> // Add this for stringstream
 #include "LIFNetwork.hpp"
 
 //implementation of LIFNetwork class
@@ -17,7 +18,7 @@ LIFNetwork::LIFNetwork(NetworkParameters params)
 
 	for (size_t i = 0; (i < params.YFlashWeights.size()); ++i)
 	{
-		m_yflashVec.emplace_back(params.YFlashWeights[i]);
+		m_yflashVec.emplace_back(params.YFlashWeights[i], i);
 	}
 	for (int size : params.layerSizes)
 	{
@@ -33,7 +34,8 @@ void LIFNetwork::feedForward(std::vector<double>& input)
 {
 	if (input.size() != m_layers[0].getLayerSize())
 	{
-		std::cerr << "Input size mismatch!" << std::endl;
+		std::cerr << "Input size mismatch! Input size: " << input.size()
+		          << ", Expected: " << m_layers[0].getLayerSize() << std::endl;
 		return;
 	}
 
@@ -49,9 +51,6 @@ void LIFNetwork::feedForward(std::vector<double>& input)
 		m_layers[l - 1].step(nextInputs);
 
 		m_layers[l].updateLayer(nextInputs);
-
-
-
 	}
 }
 void LIFNetwork::printNetworkState(int timestep) const
@@ -114,9 +113,6 @@ void LIFNetwork::printNetworkToFile()
 	}
 
 }
-
-
-
  
 void LIFNetwork::run(std::ifstream& inputFile)
 {

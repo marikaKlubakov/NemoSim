@@ -3,6 +3,7 @@
 #include <random>
 #include <string>
 #include <stdexcept>
+#include <sstream> // Add this for stringstream
 #include "LIFLayer.hpp"
 
 //implementation of LIFLayer class
@@ -10,7 +11,9 @@
 LIFLayer::LIFLayer(int numNeurons, double Cm, double Cf, double Vth, double VDD, double dt, double IR)
 {
     if (numNeurons <= 0) {
-        throw std::invalid_argument("LIFLayer: numNeurons must be positive.");
+        std::ostringstream oss;
+        oss << "LIFLayer: numNeurons must be positive. Got: " << numNeurons;
+        throw std::invalid_argument(oss.str());
     }
     m_neurons.reserve(numNeurons);
     m_weights.resize(numNeurons);
@@ -35,14 +38,14 @@ unsigned int LIFLayer::getLayerSize() const
 
 void LIFLayer::updateLayer(std::vector<double>& input)
 {
-    if (input.size() != m_neurons.size()) {
-        throw std::invalid_argument("LIFLayer::updateLayer: input size does not match number of neurons.");
-    }
     if (m_yflash)
     {
         input = m_yflash->step(input);
         if (input.size() != m_neurons.size()) {
-            throw std::runtime_error("LIFLayer::updateLayer: YFlash output size does not match number of neurons.");
+            std::ostringstream oss;
+            oss << "LIFLayer::updateLayer: YFlash output size (" << input.size()
+                << ") does not match number of neurons (" << m_neurons.size() << ").";
+            throw std::runtime_error(oss.str());
         }
     }
     for (size_t i = 0; i < input.size(); ++i)
@@ -54,7 +57,10 @@ void LIFLayer::updateLayer(std::vector<double>& input)
 void LIFLayer::step(std::vector<double>& nextInputs)
 {
     if (nextInputs.size() != m_neurons.size()) {
-        throw std::invalid_argument("LIFLayer::step: nextInputs size does not match number of neurons.");
+        std::ostringstream oss;
+        oss << "LIFLayer::step: nextInputs size (" << nextInputs.size()
+            << ") does not match number of neurons (" << m_neurons.size() << ").";
+        throw std::invalid_argument(oss.str());
     }
     for (size_t i = 0; i < m_neurons.size(); ++i)
     {
