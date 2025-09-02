@@ -89,9 +89,10 @@ bool XMLParser::parse(const std::string& filename, NetworkParameters& params)
     }
     if (arch)
     {
-        for (auto* yflat = arch->FirstChildElement("YFlash"); yflat != nullptr; yflat = yflat->NextSiblingElement("YFlash"))
+		int yFlashIdnex = 0;
+        for (auto* yflashElem = arch->FirstChildElement("YFlash"); yflashElem != nullptr; yflashElem = yflashElem->NextSiblingElement("YFlash"), yFlashIdnex++)
         {
-            YFlashParser(yflat, params);
+            YFlashParser(yflashElem, params, yFlashIdnex);
         }
     }
 
@@ -307,35 +308,45 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
     }
 }
 
-void XMLParser::YFlashParser(XMLElement* YFlash, NetworkParameters& params) 
+void XMLParser::YFlashParser(XMLElement* YFlash, NetworkParameters& params, int yFlashIndex)
 {
     auto* weightsElem = YFlash->FirstChildElement("weights");
     std::vector<std::vector<double>> layerWeights;
-    if (weightsElem) 
+    if (weightsElem)
     {
         int rowIdx = 0;
-        for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row"), ++rowIdx) 
+        for (auto* rowElem = weightsElem->FirstChildElement("row");
+            rowElem != nullptr;
+            rowElem = rowElem->NextSiblingElement("row"), ++rowIdx)
         {
             const char* rowText = rowElem->GetText();
             if (!rowText)
             {
-                std::cerr << "Warning: Empty <row> in weights at row " << rowIdx << "\n";
-                continue;
+                std::ostringstream oss;
+                oss << "Error: Empty <row> in <weights> at row "
+                    << rowIdx << " (YFlash index " << yFlashIndex << ")";
+                throw std::runtime_error(oss.str());
             }
+
             std::istringstream iss(rowText);
             std::vector<double> rowWeights;
             double w;
             while (iss >> w)
                 rowWeights.push_back(w);
+
             layerWeights.push_back(rowWeights);
         }
     }
-    else 
+    else
     {
-        std::cerr << "Warning: <weights> element missing in <synapses>\n";
+        std::ostringstream oss;
+        oss << "Error: <weights> element missing in <synapses> "
+            << "(YFlash index " << yFlashIndex << ")";
+        throw std::runtime_error(oss.str());
     }
     params.YFlashWeights.push_back(layerWeights);
 }
+
 
 // ---------------- NEW: ANN parsers ----------------
 

@@ -38,7 +38,7 @@ PE::PE(const NetworkParameters::PEBlock& peb, const NetworkParameters& p)
     // Basic sanity (non-fatal)
     if (m_cols <= 0 || m_rows <= 0) 
     {
-        std::cerr << "[PE] Warning: YFlash has non-positive dims (rows=" << m_rows << ", cols=" << m_cols << ")\n";
+        std::cerr << "[PE] Error: YFlash has non-positive dims (rows=" << m_rows << ", cols=" << m_cols << ")\n";
     }
     if (m_mux.size() != m_cols) 
     {

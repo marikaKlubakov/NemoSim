@@ -28,7 +28,7 @@ private:
     // ------- existing parsers (kept; implemented here in a minimal, safe way) -------
     void LIFNetworkParser(tinyxml2::XMLElement* LIF, tinyxml2::XMLElement* arch, NetworkParameters& params);
     void BIUNetworkParser(tinyxml2::XMLElement* BIU, tinyxml2::XMLElement* arch, NetworkParameters& params);
-    void YFlashParser(tinyxml2::XMLElement* YFlash, NetworkParameters& params);
+    void YFlashParser(tinyxml2::XMLElement* YFlash, NetworkParameters& params, int yFlashIdnex);
 
     // --------------------- NEW: ANN parsers ---------------------
     void ANNNetworkParser(tinyxml2::XMLElement* ANN, NetworkParameters& params);
