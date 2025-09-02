@@ -15,7 +15,8 @@ public:
 	std::vector<double> getSpikesVec(int index) const { return m_neurons[index].getSpikesVec(); }
 	std::vector<double> getVinVec(int index) const { return m_neurons[index].getVinec(); }
 	unsigned int getLayerSize() const;
-	double getTotalLayerEnergy() const;
+	double getTotalLayerSynapsesEnergy() const;
+	double getTotalLayerNeuronsEnergy() const;
 private:
 	std::vector<BIUNeuron> m_neurons;
     EnergyTable* m_energyTable = nullptr;

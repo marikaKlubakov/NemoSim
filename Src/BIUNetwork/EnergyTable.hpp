@@ -4,14 +4,18 @@
 
 class EnergyTable {
 public:
-    // Loads a CSV file with the described format
-    bool loadFromCSV(const std::string& path);
+    // --- Synapse energy table (original functionality) ---
+    bool loadSynapseEnergyCSV(const std::string& path);
+    double getSynapseEnergy(int weight, int spike_rate) const;
 
-    // Returns energy for given weight (1-based) and spike_rate (1-based)
-    double getEnergy(int weight, int spike_rate) const;
-
-    double getEnergyBySpike(int weight, bool spike_in) const;
+    // --- Neuron energy table (new functionality) ---
+    bool loadNeuronEnergyCSV(const std::string& path);
+    double getNeuronEnergy(double vth, double vn) const; // <-- new signature
 
 private:
-    std::vector<std::vector<double>> m_table; // [weight-1][spike_rate-1]
+    // --- Synapse energy storage (original) ---
+    std::vector<std::vector<double>> m_synapseTable;
+
+    // --- Neuron energy storage (new) ---
+    std::vector<std::vector<double>> m_neuronTable;
 };

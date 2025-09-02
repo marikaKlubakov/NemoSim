@@ -1,6 +1,6 @@
 {
-    "output_directory": "./Tests/SNN/LIF/sin_current_test/",
-    "xml_config_path": "./Tests/SNN/LIF/sin_current_test/testFull.xml",
-    "data_input_file": "./Tests/SNN/LIF/sin_current_test/input.txt",
+    "output_directory": "c:\git19\NemoSim\Tests\SNN\LIF\sin_current_test\output_directory",
+    "xml_config_path": "c:\git19\NemoSim\Tests\SNN\LIF\sin_current_test\/net.xml",
+    "data_input_file": "c:\git19\NemoSim\Tests\SNN\LIF\sin_current_test\/input.txt",
 	"progress_interval_seconds": 2
 }

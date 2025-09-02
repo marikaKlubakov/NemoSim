@@ -407,7 +407,7 @@ void XMLParser::ANNArchitectureParser(XMLElement* arch, NetworkParameters& param
     {
         NetworkParameters::PEBlock peb;
         peb.id = static_cast<int>(params.annPEs.size());
-        ANNParseYFlash(yf, peb.yflash);
+        ANNParseYFlash(yf, peb.yflash, -1);
         params.annPEs.push_back(std::move(peb));
     }
 }
@@ -419,7 +419,7 @@ void XMLParser::ANNParsePE(XMLElement* peElem, NetworkParameters& params)
     peElem->QueryIntAttribute("id", &pe.id);
     if (auto* yf = peElem->FirstChildElement("YFlash")) 
     {
-        ANNParseYFlash(yf, pe.yflash);
+        ANNParseYFlash(yf, pe.yflash, pe.id);
         params.annPEs.push_back(std::move(pe));
     }
     else 
@@ -430,7 +430,7 @@ void XMLParser::ANNParsePE(XMLElement* peElem, NetworkParameters& params)
     }
 }
 
-void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBlock& yb)
+void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBlock& yb ,int pe_id)
 {
     yfElem->QueryIntAttribute("rows", &yb.rows);
     yfElem->QueryIntAttribute("cols", &yb.cols);
@@ -441,7 +441,7 @@ void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBloc
         yb.isSigned = (v == "true" || v == "1" || v == "yes");
     }
 
-    auto parseWeights = [](XMLElement* weightsElem, int& rowIdxOut) -> std::vector<std::vector<double>>
+    auto parseWeights = [](XMLElement* weightsElem, int& rowIdxOut, int pe_id) -> std::vector<std::vector<double>>
     {
         std::vector<std::vector<double>> W;
         if (!weightsElem) return W;
@@ -453,7 +453,7 @@ void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBloc
             if (!txt) 
             {
                 std::ostringstream oss;
-                oss << "Error: Empty <row> in YFlash weights at row " << rowIdx;
+                oss << "Error: Empty <row> in YFlash weights at row " << rowIdx << "in PE Id " << pe_id;
                 throw std::runtime_error(oss.str());
             }
             std::istringstream iss(txt);
@@ -482,10 +482,10 @@ void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBloc
         int rowIdx = 0;
         if (isPos || (!yb.isSigned && yb.Wpos.empty())) 
         {
-            yb.Wpos = parseWeights(w, rowIdx);
+            yb.Wpos = parseWeights(w, rowIdx, pe_id);
         }
         if (isNeg) {
-            yb.Wneg = parseWeights(w, rowIdx);
+            yb.Wneg = parseWeights(w, rowIdx, pe_id);
         }
     }
 
