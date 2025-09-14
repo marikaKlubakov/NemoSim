@@ -135,7 +135,8 @@ static ConfigKey getConfigKey(const std::string& key)
         {"xml_config_path", ConfigKey::XmlConfigPath},
         {"sup_xml_config_path", ConfigKey::SupXmlConfigPath},
         {"data_input_file", ConfigKey::DataInputFile},
-        {"energy_table_path", ConfigKey::CsvPath},
+        {"neuron_energy_table_path", ConfigKey::NeuronEnergyCsvPath},
+        {"synapses_energy_table_path", ConfigKey::SynapsesEnergyCsvPath},
         {"progress_interval_seconds", ConfigKey::ProgressIntervalSeconds}
     };
 
@@ -193,8 +194,11 @@ Config XMLParser::parseConfigFromFile(const std::string& filePath)
         case ConfigKey::DataInputFile:
             config.dataInputPath = value;
             break;
-        case ConfigKey::CsvPath:
-            config.EnergyCsvFile = value;
+        case ConfigKey::NeuronEnergyCsvPath:
+            config.neuronEnergyCsvPath = value;
+            break;
+        case ConfigKey::SynapsesEnergyCsvPath:
+            config.synapsesEnergyCsvPath = value;
             break;
         case ConfigKey::ProgressIntervalSeconds:
             config.progressIntervalSeconds = std::stoi(value);
@@ -430,57 +434,57 @@ void XMLParser::ANNParsePE(XMLElement* peElem, NetworkParameters& params)
     }
 }
 
-void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBlock& yb ,int pe_id)
+void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBlock& yb, int pe_id)
 {
     yfElem->QueryIntAttribute("rows", &yb.rows);
     yfElem->QueryIntAttribute("cols", &yb.cols);
 
-    if (const char* s = yfElem->Attribute("signed")) 
+    if (const char* s = yfElem->Attribute("signed"))
     {
         std::string v = s; std::transform(v.begin(), v.end(), v.begin(), ::tolower);
         yb.isSigned = (v == "true" || v == "1" || v == "yes");
     }
 
     auto parseWeights = [](XMLElement* weightsElem, int& rowIdxOut, int pe_id) -> std::vector<std::vector<double>>
-    {
-        std::vector<std::vector<double>> W;
-        if (!weightsElem) return W;
-        int rowIdx = 0;
-        for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row"), ++rowIdx) 
         {
-            std::vector<double> r;
-            const char* txt = rowElem->GetText();
-            if (!txt) 
+            std::vector<std::vector<double>> W;
+            if (!weightsElem) return W;
+            int rowIdx = 0;
+            for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row"), ++rowIdx)
             {
-                std::ostringstream oss;
-                oss << "Error: Empty <row> in YFlash weights at row " << rowIdx << "in PE Id " << pe_id;
-                throw std::runtime_error(oss.str());
+                std::vector<double> r;
+                const char* txt = rowElem->GetText();
+                if (!txt)
+                {
+                    std::ostringstream oss;
+                    oss << "Error: Empty <row> in YFlash weights at row " << rowIdx << "in PE Id " << pe_id;
+                    throw std::runtime_error(oss.str());
+                }
+                std::istringstream iss(txt);
+                double x; while (iss >> x) r.push_back(x);
+                W.push_back(std::move(r));
             }
-            std::istringstream iss(txt);
-            double x; while (iss >> x) r.push_back(x);
-            W.push_back(std::move(r));
-        }
-        rowIdxOut = rowIdx;
-        return W;
-    };
+            rowIdxOut = rowIdx;
+            return W;
+        };
 
-    for (auto* w = yfElem->FirstChildElement("weights"); w != nullptr; w = w->NextSiblingElement("weights")) 
+    for (auto* w = yfElem->FirstChildElement("weights"); w != nullptr; w = w->NextSiblingElement("weights"))
     {
         bool isPos = false, isNeg = false;
 
-        if (const char* posAttr = w->Attribute("pos")) 
+        if (const char* posAttr = w->Attribute("pos"))
         {
             std::string v = posAttr; std::transform(v.begin(), v.end(), v.begin(), ::tolower);
             isPos = (v == "true" || v == "1" || v == "yes");
         }
-        if (const char* negAttr = w->Attribute("neg")) 
+        if (const char* negAttr = w->Attribute("neg"))
         {
             std::string v = negAttr; std::transform(v.begin(), v.end(), v.begin(), ::tolower);
             isNeg = (v == "true" || v == "1" || v == "yes");
         }
 
         int rowIdx = 0;
-        if (isPos || (!yb.isSigned && yb.Wpos.empty())) 
+        if (isPos || (!yb.isSigned && yb.Wpos.empty()))
         {
             yb.Wpos = parseWeights(w, rowIdx, pe_id);
         }
@@ -491,9 +495,9 @@ void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBloc
 
     if (!yb.Wpos.empty()) {
         int cols = static_cast<int>(yb.Wpos.front().size());
-        for (size_t r = 0; r < yb.Wpos.size(); ++r) 
+        for (size_t r = 0; r < yb.Wpos.size(); ++r)
         {
-            if (static_cast<int>(yb.Wpos[r].size()) != cols) 
+            if (static_cast<int>(yb.Wpos[r].size()) != cols)
             {
                 std::ostringstream oss;
                 oss << "Error: YFlash Wpos is not rectangular at row " << r;
@@ -501,7 +505,7 @@ void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBloc
             }
         }
     }
-    if (yb.isSigned && !yb.Wneg.empty() && yb.Wneg.size() != yb.Wpos.size()) 
+    if (yb.isSigned && !yb.Wneg.empty() && yb.Wneg.size() != yb.Wpos.size())
     {
         std::ostringstream oss;
         oss << "Error: YFlash Wneg rows != Wpos rows (Wneg rows: " << yb.Wneg.size()
@@ -509,3 +513,4 @@ void XMLParser::ANNParseYFlash(XMLElement* yfElem, NetworkParameters::YFlashBloc
         throw std::runtime_error(oss.str());
     }
 }
+

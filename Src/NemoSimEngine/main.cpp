@@ -82,11 +82,16 @@ bool RetrieveNetworkParamsFromXML(XMLParser* parser, NetworkParameters* params, 
 		}
 	}
 
-	if(!config.EnergyCsvFile.empty())
+	if (!config.neuronEnergyCsvPath.empty())
 	{
-		params->csvPath = config.EnergyCsvFile;
+		params->neuronEnergyCsvPath = config.neuronEnergyCsvPath;
 	}
-	
+
+	if (!config.synapsesEnergyCsvPath.empty())
+	{
+		params->synapsesEnergyCsvPath = config.synapsesEnergyCsvPath;
+	}
+
 	return true;
 }
 

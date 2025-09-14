@@ -14,6 +14,8 @@ public:
 	BIUNetwork(NetworkParameters params);
 	void run(std::ifstream& inputFile) override;
 	void printNetworkToFile() override;
+	double getTotalNeuronsEnergy();
+	double getTotalSynapsesEnergy();
 private:
 	std::vector<BIULayer> m_vecLayers;
 	void setInputs(const std::vector<std::vector<std::vector<double>>>& inputs);

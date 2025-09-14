@@ -24,7 +24,7 @@ void BIUNeuron::setSynapticInputs(const std::vector<double>& inputs)
     m_synapticInputs = inputs;
     for (size_t i = 0; i < m_synapticInputs.size(); ++i)
     {
-	    m_synapticEnergy[i] += m_energyTable->getEnergyBySpike(static_cast<int>(m_synapticWeights[i]), m_synapticInputs[i] > 0);
+	    m_synapticEnergy[i] += m_energyTable->getSynapseEnergy(static_cast<int>(m_synapticWeights[i]), m_synapticInputs[i] > 0);
     }
     if (!m_synapticInputs.empty())
         m_Vins.emplace_back(m_synapticInputs[0]);
@@ -32,6 +32,7 @@ void BIUNeuron::setSynapticInputs(const std::vector<double>& inputs)
 
 bool BIUNeuron::update()
 {
+    m_neuronEnergy += m_energyTable->getNeuronEnergy(m_VTH, m_Vn);
     m_Vns.emplace_back(m_Vn);
     if (cyclesLeft > 0)
     {
@@ -80,4 +81,9 @@ double BIUNeuron::getTotalSynapticEnergy() const
     double sum = 0.0;
     for (double e : m_synapticEnergy) sum += e;
     return sum;
+}
+
+double BIUNeuron::getNeuronEnergy() const
+{
+    return m_neuronEnergy;
 }

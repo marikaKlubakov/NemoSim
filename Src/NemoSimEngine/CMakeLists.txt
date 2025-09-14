@@ -25,14 +25,14 @@ set(SOURCES
     main.cpp
     ../Common/XMLParser.cpp
     ../Common/tinyxml2.cpp
-    ../Common/baseNetwork.cpp
+    ../Common/BaseNetwork.cpp
     NEMOEngine.cpp
 )
 
 set(HEADERS 
     ../Common/tinyxml2.h    
     ../Common/XMLParser.hpp
-    ../Common/baseNetwork.hpp
+    ../Common/BaseNetwork.hpp
     networkParams.hpp
     NEMOEngine.hpp
 )
