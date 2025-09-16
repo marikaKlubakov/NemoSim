@@ -10,11 +10,18 @@ BIUNetwork::BIUNetwork(NetworkParameters params)
 	{
 		m_vecLayers.emplace_back(params.layerSizes[i], params.VTh, params.VDD, params.refractory, params.Cn, params.Cu, params.allWeights[i], m_energyTable);
 	}
-	if (!params.csvPath.empty())
+    if (!params.synapsesEnergyCsvPath.empty())
+    {
+        if (!m_energyTable->loadSynapseEnergyCSV(params.synapsesEnergyCsvPath)) {
+            throw std::runtime_error("Failed to load synapses energy table from: " + params.synapsesEnergyCsvPath);
+        }
+    }
+	if (!params.neuronEnergyCsvPath.empty())
 	{
-		if (!m_energyTable->loadFromCSV(params.csvPath)) {
-			throw std::runtime_error("Failed to load energy table from: " + params.csvPath);
+		if (!m_energyTable->loadNeuronEnergyCSV(params.neuronEnergyCsvPath)) {
+			throw std::runtime_error("Failed to load neuron energy table from: " + params.neuronEnergyCsvPath);
 		}
+		
 	}
 }
 
@@ -47,10 +54,11 @@ void BIUNetwork::run(std::ifstream& inputFile)
     std::cout << "\nFinished executing.\n";
     inputFile.close();
 
-    double totalEnergy = 0.0;
-    for (const auto& layer : m_vecLayers)
-        totalEnergy += layer.getTotalLayerEnergy();
-    std::cout << "Total synaptic energy: " << totalEnergy << '\n';
+    auto totalSynapsesEnergy = getTotalSynapsesEnergy();
+    std::cout << "Total synaptic energy: " << totalSynapsesEnergy << " fJ" << '\n';
+
+    auto totalNeuronsEnergy = getTotalNeuronsEnergy();
+    std::cout << "Total neurons energy: " << totalNeuronsEnergy << " fJ" << '\n';
 }
 
 
@@ -122,4 +130,18 @@ void BIUNetwork::printNetworkToFile()
             }
         }
     }
+}
+
+double BIUNetwork::getTotalNeuronsEnergy()
+{
+    double sum = 0.0;
+    for (const auto& layer : m_vecLayers) sum += layer.getTotalLayerNeuronsEnergy();
+    return sum;
+}
+
+double BIUNetwork::getTotalSynapsesEnergy()
+{
+    double sum = 0.0;
+    for (const auto& layer : m_vecLayers) sum += layer.getTotalLayerSynapsesEnergy();
+    return sum;
 }

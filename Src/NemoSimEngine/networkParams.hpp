@@ -18,7 +18,8 @@ enum class NetworkTypes {
 struct NetworkParameters {
     // ---- existing fields (unchanged) ----
     NetworkTypes networkType;
-    std::string csvPath;
+    std::string neuronEnergyCsvPath;
+    std::string synapsesEnergyCsvPath;
     // LIF / BIU common
     double Cm = 0.0;
     double Cf = 0.0;
@@ -94,7 +95,8 @@ enum class ConfigKey {
     XmlConfigPath,
     SupXmlConfigPath,
     DataInputFile,
-    CsvPath,                  // <-- preserved
+    NeuronEnergyCsvPath,
+    SynapsesEnergyCsvPath,
     ProgressIntervalSeconds,
     Unknown
 };
@@ -104,7 +106,8 @@ struct Config {
     std::string xmlConfigPath;
     std::string supXmlConfigPath;
     std::string dataInputPath;
-    std::string EnergyCsvFile;                // <-- preserved
+    std::string neuronEnergyCsvPath;
+    std::string synapsesEnergyCsvPath;
     int         progressIntervalSeconds = 30;
 };
 
@@ -122,6 +125,7 @@ static const std::unordered_map<std::string, ConfigKey> StringToConfigKey = {
     {"XmlConfigPath",          ConfigKey::XmlConfigPath},
     {"SupXmlConfigPath",       ConfigKey::SupXmlConfigPath},
     {"DataInputFile",          ConfigKey::DataInputFile},
-    {"CsvPath",                ConfigKey::CsvPath},  // <-- preserved
+    {"NeuronEnergyTablePath",                ConfigKey::NeuronEnergyCsvPath},  // <-- preserved
+    {"SynapsesEnergyTablePath",                ConfigKey::SynapsesEnergyCsvPath},  // <-- preserved
     {"ProgressIntervalSeconds",ConfigKey::ProgressIntervalSeconds}
 };
