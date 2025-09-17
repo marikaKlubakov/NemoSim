@@ -35,6 +35,15 @@ struct NetworkParameters {
     double Cu = 0.0;
     double refractory = 0.0;
 
+    // ---------- NEW: BIU per-neuron overrides (per layer) ----------
+    // If empty for a given layer, BIULayer should fall back to uniform VTh/refractory.
+    // Size invariants (when present):
+    //   biuNeuronVTh[i].size()        == layerSizes[i]
+    //   biuNeuronRefractory[i].size() == layerSizes[i]
+    //   biuNeuronRLeak[i].size()      == layerSizes[i]
+    std::vector<std::vector<double>> biuNeuronVTh;
+    std::vector<std::vector<int>>    biuNeuronRefractory;
+    std::vector<std::vector<double>> biuNeuronRLeak;
     // Topology info
     std::vector<int> layerSizes;
 

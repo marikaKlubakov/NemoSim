@@ -6,7 +6,7 @@ class EnergyTable; // Forward declaration
 class BIUNeuron 
 {
 public:
-	BIUNeuron(double vth, double vdd, double refractory, double cn, double cu, std::vector<double> weights, EnergyTable* energyTable = nullptr);
+	BIUNeuron(double vth, double vdd, double refractory, double cn, double cu, double rLeak, std::vector<double> weights, EnergyTable* energyTable = nullptr);
 	void setSynapticInputs(const std::vector<double>& inputs);
 	bool update();
 	double getVoltage() const;
@@ -23,6 +23,7 @@ private:
 	double m_Cn;
 	double m_Cu;
 	double m_Vn;
+	double m_RLeak;          
 	int cyclesLeft;
 	std::vector<double> m_synapticWeights;
 	std::vector<double> m_synapticInputs;

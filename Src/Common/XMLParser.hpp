@@ -30,6 +30,8 @@ private:
     void BIUNetworkParser(tinyxml2::XMLElement* BIU, tinyxml2::XMLElement* arch, NetworkParameters& params);
     void YFlashParser(tinyxml2::XMLElement* YFlash, NetworkParameters& params, int yFlashIdnex);
 
+    static void applyNeuronRanges(tinyxml2::XMLElement * layer, int size, std::vector<double>&perVTh, std::vector<int>&perRefractory, std::vector<double>& perRLeak);
+
     // --------------------- NEW: ANN parsers ---------------------
     void ANNNetworkParser(tinyxml2::XMLElement* ANN, NetworkParameters& params);
     void ANNArchitectureParser(tinyxml2::XMLElement* arch, NetworkParameters& params);

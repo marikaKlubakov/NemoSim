@@ -1,6 +1,7 @@
 #include "BIUNetwork.hpp"
 #include "EnergyTable.hpp"
 #include <fstream>
+#include <sstream>
 
 BIUNetwork::BIUNetwork(NetworkParameters params)
 {
@@ -8,7 +9,22 @@ BIUNetwork::BIUNetwork(NetworkParameters params)
 
 	for (size_t i = 0; i < params.layerSizes.size(); ++i)
 	{
-		m_vecLayers.emplace_back(params.layerSizes[i], params.VTh, params.VDD, params.refractory, params.Cn, params.Cu, params.allWeights[i], m_energyTable);
+        bool havePerNeuron =
+            (i < params.biuNeuronVTh.size() && i < params.biuNeuronRefractory.size() &&
+                params.biuNeuronVTh[i].size() == (size_t)params.layerSizes[i] &&
+                params.biuNeuronRefractory[i].size() == (size_t)params.layerSizes[i] &&
+                params.biuNeuronRLeak[i].size() == (size_t)params.layerSizes[i]);
+        
+        if (havePerNeuron)
+        {
+            m_vecLayers.emplace_back(params.layerSizes[i], params.VDD, params.Cn, params.Cu,
+                params.allWeights[i], m_energyTable,
+                params.biuNeuronVTh[i], params.biuNeuronRefractory[i], params.biuNeuronRLeak[i]);
+        }
+        else
+        {
+            m_vecLayers.emplace_back(params.layerSizes[i], params.VTh, params.VDD, params.refractory, params.Cn, params.Cu, params.Rleak, params.allWeights[i], m_energyTable);
+        }
 	}
     if (!params.synapsesEnergyCsvPath.empty())
     {
@@ -42,9 +58,15 @@ void BIUNetwork::run(std::ifstream& inputFile)
         ++currentLine;
         ++t;
 
-        double value = std::stod(line);
-        std::vector<std::vector<std::vector<double>>> currentInput = { { { value } } };
-        setInputs(currentInput);
+        // Parse all values in the line
+        std::istringstream iss(line);
+        std::vector<double> values;
+        double value;
+        while (iss >> value) {
+            values.push_back(value);
+        }
+
+        setInputs(values);
 
         auto spikes = update();
 
@@ -62,9 +84,9 @@ void BIUNetwork::run(std::ifstream& inputFile)
 }
 
 
-void BIUNetwork::setInputs(const std::vector<std::vector<std::vector<double>>>& inputs)
+void BIUNetwork::setInputs(const std::vector<double>& inputs)
 {
-	m_vecLayers[0].setInputs(inputs[0]);
+	m_vecLayers[0].setInputs(inputs);
 }
 
 std::vector<std::vector<bool>> BIUNetwork::update()
@@ -81,8 +103,8 @@ std::vector<std::vector<bool>> BIUNetwork::update()
 			{
 				inputs.push_back(spike ? 1.0 : 0.0);  // Convert spike to input current
 			}
-			std::vector<std::vector<double>> wrappedInputs = { inputs };
-			m_vecLayers[i].setInputs(wrappedInputs);
+		
+			m_vecLayers[i].setInputs(inputs);
 		}
 		auto spikes = m_vecLayers[i].update();
 		allSpikes.push_back(spikes);
@@ -100,9 +122,9 @@ void BIUNetwork::printNetworkToFile()
             std::vector<double> spikes = m_vecLayers[layerIdx].getSpikesVec(neuronIdx);
             std::vector<double> Vin = m_vecLayers[layerIdx].getVinVec(neuronIdx);
 
-            std::string vnsFile = "vns" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
-            std::string spikesFile = "spikes" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
-            std::string vinFile = "vin" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
+            std::string vnsFile = "vns_" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
+            std::string spikesFile = "spikes_" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
+            std::string vinFile = "vin_" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
 
             std::ofstream vnsOut(vnsFile);
             std::ofstream spikesOut(spikesFile);
