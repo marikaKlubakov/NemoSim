@@ -1,5 +1,5 @@
 #!/bin/csh
-
+source cmakeLinux.csh
 # Get the directory of the script
 set BASE_DIR = `pwd`
 
