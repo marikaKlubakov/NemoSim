@@ -21,5 +21,5 @@ set(HEADERS
 add_library(DS STATIC ${SOURCES} ${HEADERS})
 
 # Allow NEMOSIM to use LIFNetwork headers
-target_include_directories(LIFNetwork PUBLIC ${CMAKE_SOURCE_DIR}/DS)
+target_include_directories(DS PUBLIC ${CMAKE_SOURCE_DIR}/DS)
 
