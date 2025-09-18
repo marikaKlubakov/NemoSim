@@ -1,5 +1,7 @@
 @echo off
 setlocal
+cd
+dir
 call "./cmakeVisualStudio.bat"
 :: Set paths
 set OUTPUT_DIR=%~dp0/_build64/Release
