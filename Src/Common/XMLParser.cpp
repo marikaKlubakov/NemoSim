@@ -43,6 +43,38 @@ bool XMLParser::parseInt(XMLElement* parent, const char* tag, int& out)
     return false;
 }
 
+void XMLParser::applyNeuronRanges(XMLElement* layer, int size,
+    std::vector<double>& perVTh,
+    std::vector<int>& perRefractory,
+    std::vector<double>&perRLeak)
+{
+    // Parse zero or more: <NeuronRange start="a" end="b"><VTh>..</VTh><refractory>..</refractory></NeuronRange>
+    for (auto* r = layer->FirstChildElement("NeuronRange"); r; r = r->NextSiblingElement("NeuronRange"))
+    {
+        int s = -1, e = -1;
+        if (r->QueryIntAttribute("start", &s) != XML_SUCCESS ||
+            r->QueryIntAttribute("end", &e) != XML_SUCCESS ||
+            s < 0 || e<0 || s>e || e >= size)
+        {
+            std::ostringstream oss;
+            oss << "NeuronRange requires valid start/end within [0," << (size - 1) << "]";
+            throw std::runtime_error(oss.str());
+        }
+
+        double vthVal; int refrVal; double rleakVal;
+        bool hasV = parseDouble(r, "VTh", vthVal);
+        bool hasR = parseInt(r, "refractory", refrVal);
+        bool hasL = parseDouble(r, "RLeak", rleakVal);
+        if (!hasV && !hasR && !hasL) continue; // nothing to apply
+
+        for (int i = s; i <= e; ++i) {
+            if (hasV) perVTh[i] = vthVal;
+            if (hasR) perRefractory[i] = refrVal;
+            if (hasL) perRLeak[i] = rleakVal;
+        }
+    }
+}
+
 // ---------------- public: XML entry ----------------
 
 bool XMLParser::parse(const std::string& filename, NetworkParameters& params)
@@ -243,7 +275,7 @@ void XMLParser::LIFNetworkParser(XMLElement* LIF, XMLElement* arch, NetworkParam
     }
 }
 
-void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParameters& params) 
+void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParameters& params)
 {
     parseDouble(BIU, "fclk", params.fclk);
     parseDouble(BIU, "VTh", params.VTh);
@@ -256,13 +288,13 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
     if (arch && params.networkType == NetworkTypes::BIUNetworkType)
     {
         int layerIdx = 0;
-        for (auto* layer = arch->FirstChildElement("Layer"); layer != nullptr; layer = layer->NextSiblingElement("Layer"), ++layerIdx) 
+        for (auto* layer = arch->FirstChildElement("Layer"); layer != nullptr; layer = layer->NextSiblingElement("Layer"), ++layerIdx)
         {
             int size;
             if (layer->QueryIntAttribute("size", &size) == tinyxml2::XML_SUCCESS)
             {
                 params.layerSizes.push_back(size);
-            }    
+            }
             else
             {
                 std::ostringstream oss;
@@ -270,17 +302,17 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
                 throw std::runtime_error(oss.str());
             }
             auto* synapses = layer->FirstChildElement("synapses");
-            if (synapses) 
+            if (synapses)
             {
                 auto* weightsElem = synapses->FirstChildElement("weights");
                 std::vector<std::vector<double>> layerWeights;
-                if (weightsElem) 
+                if (weightsElem)
                 {
                     int rowIdx = 0;
-                    for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row"), ++rowIdx) 
+                    for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row"), ++rowIdx)
                     {
                         const char* rowText = rowElem->GetText();
-                        if (!rowText) 
+                        if (!rowText)
                         {
                             std::ostringstream oss;
                             oss << "Error: Empty <row> in weights at layer " << layerIdx << ", row " << rowIdx;
@@ -294,7 +326,7 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
                         layerWeights.push_back(rowWeights);
                     }
                 }
-                else 
+                else
                 {
                     std::ostringstream oss;
                     oss << "Error: <weights> element missing in <synapses> at layer " << layerIdx;
@@ -302,12 +334,39 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
                 }
                 params.allWeights.push_back(layerWeights);
             }
-            else 
+            else
             {
                 std::ostringstream oss;
                 oss << "Error: <synapses> missing in <Layer> at index " << layerIdx;
                 throw std::runtime_error(oss.str());
             }
+
+            // ---- NEW: per-neuron VTh + refractory for BIU (Option B: NeuronRange) ----
+            std::vector<double> perVTh(size, params.VTh);
+            std::vector<int>    perRefractory(size, static_cast<int>(params.refractory));
+            std::vector<double> perRLeak(size, params.Rleak);
+            // Apply any <NeuronRange>
+            applyNeuronRanges(layer, size, perVTh, perRefractory, perRLeak);
+            // Most-specific overrides: individual <Neuron index="...">
+            for (auto* n = layer->FirstChildElement("Neuron"); n != nullptr; n = n->NextSiblingElement("Neuron"))
+            {
+                int idx = -1;
+                if (n->QueryIntAttribute("index", &idx) != XML_SUCCESS || idx < 0 || idx >= size)
+                {
+                    std::ostringstream oss;
+                    oss << "Error: <Neuron> missing/invalid 'index' in layer " << layerIdx;
+                    throw std::runtime_error(oss.str());
+                }
+                double vthOverride, rleakOverride;
+                int refrOverride;
+                if (parseDouble(n, "VTh", vthOverride)) perVTh[idx] = vthOverride;
+                if (parseInt(n, "refractory", refrOverride)) perRefractory[idx] = refrOverride;
+                if (parseDouble(n, "RLeak", rleakOverride)) perRLeak[idx] = rleakOverride;
+            }
+
+            params.biuNeuronVTh.push_back(std::move(perVTh));
+            params.biuNeuronRefractory.push_back(std::move(perRefractory));
+            params.biuNeuronRLeak.push_back(std::move(perRLeak));
         }
     }
 }

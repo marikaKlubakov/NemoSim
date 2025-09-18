@@ -7,9 +7,9 @@
 #define R_LEAK 1e8  // Leakage resistor
 #define VDD_HALF_FACTOR 0.5 // For clarity in voltage calculation
 
-BIUNeuron::BIUNeuron(double vth, double vdd, double refractory, double cn, double cu, std::vector<double> weights, EnergyTable* energyTable)
+BIUNeuron::BIUNeuron(double vth, double vdd, double refractory, double cn, double cu, double rLeak, std::vector<double> weights, EnergyTable* energyTable)
     : m_VTH(vth), m_VDD(vdd), m_refractoryTime(refractory),
-    m_Cn(cn), m_Cu(cu), m_synapticWeights(weights), m_energyTable(energyTable)
+    m_Cn(cn), m_Cu(cu), m_RLeak(rLeak), m_synapticWeights(weights), m_energyTable(energyTable)
 {
     m_Vn = 0;
     cyclesLeft = 0;
@@ -56,7 +56,7 @@ bool BIUNeuron::update()
 
     m_Vn = (m_Cn / Ctotal) * m_Vn
         + (m_Cu / Ctotal) * weightedSum
-        + (m_Vn - VDD_HALF_FACTOR * m_VDD) / (m_Cn * FCLK * R_LEAK);
+        - (m_Vn - VDD_HALF_FACTOR * m_VDD) / (m_Cn * FCLK * m_RLeak);
 
     if (m_Vn >= m_VTH)
     {

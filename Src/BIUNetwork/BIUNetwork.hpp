@@ -18,7 +18,7 @@ public:
 	double getTotalSynapsesEnergy();
 private:
 	std::vector<BIULayer> m_vecLayers;
-	void setInputs(const std::vector<std::vector<std::vector<double>>>& inputs);
+	void setInputs(const std::vector<double>& inputs);
 	std::vector<std::vector<bool>> update();
 	EnergyTable* m_energyTable = nullptr; // Pointer to energy table for energy calculations
 };
