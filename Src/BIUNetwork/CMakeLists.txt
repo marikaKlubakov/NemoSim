@@ -3,6 +3,7 @@ set(CMAKE_C_COMPILER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Profes
 set(CMAKE_CXX_COMPILER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe")
 
 project(BIUNetwork LANGUAGES C CXX)
+include_directories(${CMAKE_SOURCE_DIR}/Src/DS)
 
 set(SOURCES 
     BIUNeuron.cpp
@@ -23,3 +24,5 @@ add_library(BIUNetwork STATIC ${SOURCES} ${HEADERS})
 
 # Allow NEMOSIM to use BIUNetwork headers
 target_include_directories(BIUNetwork PUBLIC ${CMAKE_SOURCE_DIR}/BIUNetwork)
+
+target_link_libraries(BIUNetwork PRIVATE DS)

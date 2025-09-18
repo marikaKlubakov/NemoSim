@@ -6,7 +6,12 @@
 BIUNetwork::BIUNetwork(NetworkParameters params)
 {
 	m_energyTable = new EnergyTable();
-
+    if (!params.allWeights.empty() && !params.allWeights[0].empty()) 
+    {
+        size_t inputCount = params.allWeights[0][0].size(); // number of inputs per neuron
+        initFrontEndDS_(inputCount);
+        
+    }
 	for (size_t i = 0; i < params.layerSizes.size(); ++i)
 	{
         bool havePerNeuron =
@@ -86,7 +91,28 @@ void BIUNetwork::run(std::ifstream& inputFile)
 
 void BIUNetwork::setInputs(const std::vector<double>& inputs)
 {
-	m_vecLayers[0].setInputs(inputs);
+    if (!m_vecLayers.empty() && !m_dsUnits.empty()) 
+    {
+        // Route through DS: file provides codes (ideally 0..255 for 8-bit)
+        std::vector<double> dsOut;
+        const size_t n = std::min(inputs.size(), m_dsUnits.size());
+        dsOut.reserve(n);
+        for (size_t i = 0; i < n; ++i) 
+        {
+            unsigned int code = clampToCode_(inputs[i]);
+            m_dsUnits[i].setCode(code);
+            bool spk = m_dsUnits[i].tick();
+            dsOut.push_back(spk ? 1.0 : 0.0);
+        }
+        // If fewer inputs provided than DS units, pad with zeros
+        while (dsOut.size() < m_dsUnits.size()) dsOut.push_back(0.0);
+        m_vecLayers[0].setInputs(dsOut);
+    } 
+    else 
+    {
+        // Fallback: original behavior (no DS)
+        m_vecLayers[0].setInputs(inputs);
+    }
 }
 
 std::vector<std::vector<bool>> BIUNetwork::update()
@@ -166,4 +192,25 @@ double BIUNetwork::getTotalSynapsesEnergy()
     double sum = 0.0;
     for (const auto& layer : m_vecLayers) sum += layer.getTotalLayerSynapsesEnergy();
     return sum;
+}
+
+// ===== Helpers for DS front-end =====
+void BIUNetwork::initFrontEndDS_(size_t inputCount)
+{
+    m_dsUnits.clear();
+    m_dsUnits.reserve(inputCount);
+    for (size_t i = 0; i < inputCount; ++i)
+    {
+        m_dsUnits.emplace_back(m_dsClockMHz, m_dsBitWidth, m_dsMode);
+        m_dsUnits.back().setCode(0);
+    }
+}
+
+unsigned int BIUNetwork::clampToCode_(double x) const
+{
+    if (m_dsBitWidth >= 31) return 0; // safety
+    unsigned int maxCode = (1u << m_dsBitWidth) - 1u; // = 255 for 8-bit
+    if (x < 0.0) return 0u;
+    if (x > (double)maxCode) return maxCode;
+    return static_cast<unsigned int>(x); // assume file already gives integers 0..255
 }
