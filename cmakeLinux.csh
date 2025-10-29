@@ -14,6 +14,6 @@ mkdir build
 cd build
 
 # Run CMake to configure the project
-cmake -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX ..
+cmake -Wno-dev -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX ..
 
 make
