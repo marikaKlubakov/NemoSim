@@ -25,7 +25,7 @@ mkdir "%TEMP_DIR%"
 
 :: Copy files to package
 copy "%OUTPUT_DIR%\NEMOSIM.exe" "%TEMP_DIR%"
-copy "%~dp0\Src\Doc\readme.txt" "%TEMP_DIR%"
+::copy "%~dp0\Src\Doc\readme.txt" "%TEMP_DIR%"
 copy "%~dp0\Src\Common\tinyxml2.h" "%TEMP_DIR%"
 copy "%~dp0\Src\LIFNetwork\plot_vm_to_dt.py" "%TEMP_DIR%"
 copy "%~dp0\Src\LIFNetwork\input_creator.py" "%TEMP_DIR%"
