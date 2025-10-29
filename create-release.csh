@@ -1,4 +1,6 @@
 #!/bin/csh
+module load gcc/9.1.0;
+gcc --version
 pwd 
 ls -l
 source cmakeLinux.csh
