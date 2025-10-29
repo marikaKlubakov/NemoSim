@@ -1,7 +1,6 @@
 
 # Set the full paths to the compilers
-setenv CC /usr/bin/gcc
-setenv CXX /usr/bin/g++
+
 
 # Navigate to the project directory
 
