@@ -1,7 +1,7 @@
 
 # Set the full paths to the compilers
-setenv CC /usr/bin/gcc
-setenv CXX /usr/bin/g++
+setenv CC /usr/local/install/gcc-9.1.0/bin/gcc
+setenv CXX /usr/local/install/gcc-9.1.0/bin/g++
 
 # Navigate to the project directory
 

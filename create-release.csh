@@ -1,10 +1,12 @@
 #!/bin/csh
-
+pwd 
+ls -l
+source cmakeLinux.csh
 # Get the directory of the script
 set BASE_DIR = `pwd`
 
 # Set paths
-set OUTPUT_DIR = "$BASE_DIR/build"
+set OUTPUT_DIR = "$BASE_DIR/_Build64"
 set TESTS_DIR = "$BASE_DIR/Tests"
 
 # Get date in YYMMDD format

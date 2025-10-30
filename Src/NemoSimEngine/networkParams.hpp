@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include "../DS/DS.hpp"
 
 /* =========================================================
    Network types (extended with ANNNetworkType)
@@ -34,6 +35,11 @@ struct NetworkParameters {
     double Cn = 0.0;
     double Cu = 0.0;
     double refractory = 0.0;
+
+	// DS front-end
+    int DSBitWidth = 0.0;
+    double DSClockMHz = 0.0;
+	DS::Mode DSMode = DS::ThresholdMode;
 
     // ---------- NEW: BIU per-neuron overrides (per layer) ----------
     // If empty for a given layer, BIULayer should fall back to uniform VTh/refractory.
@@ -127,6 +133,11 @@ static const std::unordered_map<std::string, NetworkTypes> StringToNetworkType =
     {"LIFNetwork", NetworkTypes::LIFNetworkType},
     {"BIUNetwork", NetworkTypes::BIUNetworkType},
     {"ANNNetwork", NetworkTypes::ANNNetworkType}
+};
+
+static const std::unordered_map<std::string, DS::Mode> StringToDSMode = {
+    {"FrequencyMode", DS::Mode::FrequencyMode},
+    {"ThresholdMode", DS::Mode::ThresholdMode}
 };
 
 static const std::unordered_map<std::string, ConfigKey> StringToConfigKey = {

@@ -39,7 +39,7 @@ set(HEADERS
 
 add_executable(NEMOSIM ${SOURCES} ${HEADERS})
 
-target_link_libraries(NEMOSIM PRIVATE LIFNetwork BIUNetwork ANNNetwork YFlash) #ANNNetwork)
+target_link_libraries(NEMOSIM PRIVATE LIFNetwork BIUNetwork ANNNetwork YFlash)
 
 # Ensure correct output naming
 

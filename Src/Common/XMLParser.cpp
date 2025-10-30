@@ -283,10 +283,42 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
     parseDouble(BIU, "VDD", params.VDD);
     parseDouble(BIU, "Cn", params.Cn);
     parseDouble(BIU, "Cu", params.Cu);
+    parseInt(BIU, "DSBitWidth", params.DSBitWidth);
+    parseDouble(BIU, "DSClockMHz", params.DSClockMHz);
     parseDouble(BIU, "refractory", params.refractory);
 
     if (arch && params.networkType == NetworkTypes::BIUNetworkType)
     {
+        // Parse DS mode correctly
+        if (auto* dsModeElem = BIU->FirstChildElement("DSMode"))
+        {
+            if (const char* txt = dsModeElem->GetText())
+            {
+                std::string key = txt;
+                // Optional: trim + preserve case; keys are exact ("FrequencyMode", "ThresholdMode")
+                // If you want case-insensitive:
+                // std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+
+                auto it = StringToDSMode.find(key);
+                if (it != StringToDSMode.end())
+                {
+                    params.DSMode = it->second;
+                }
+                else
+                {
+                    std::cerr << "Error: Unknown DSMode '" << key << "'. Falling back to default (ThresholdMode).\n";
+                }
+            }
+            else
+            {
+                std::cerr << "Warning: <DSMode> element is empty. Using default (ThresholdMode).\n";
+            }
+        }
+        else
+        {
+            std::cerr << "Info: <DSMode> not specified. Using default (ThresholdMode).\n";
+        }
+
         int layerIdx = 0;
         for (auto* layer = arch->FirstChildElement("Layer"); layer != nullptr; layer = layer->NextSiblingElement("Layer"), ++layerIdx)
         {
