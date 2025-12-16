@@ -17,6 +17,7 @@ public:
 	void printNetworkToFile() override;
 	double getTotalNeuronsEnergy();
 	double getTotalSynapsesEnergy();
+	double getTotalspikes();
 private:
 	std::vector<BIULayer> m_vecLayers;
 	void setInputs(const std::vector<double>& inputs);

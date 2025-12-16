@@ -4,7 +4,8 @@
 		<fclk>1e7</fclk>
         <RLeak>1e6</RLeak>
         <VDD>1.2</VDD>
-        <Cn>1e-12</Cn>
-		<Cu>4e-15</Cu>
+        <Cn>170e-14</Cn>
+		<Cu>0.6e-15</Cu>
+		<CPara>5.5e-15</CPara>
 	</BIUNetwork>
 </NetworkConfig>

@@ -2,16 +2,16 @@
 #include "EnergyTable.hpp"
 #include <stdexcept>
 
-BIULayer::BIULayer(int numNeurons, double vth, double vdd, double refractory, double cn, double cu, double rleak, std::vector<std::vector<double>> weights, EnergyTable* energyTable)
+BIULayer::BIULayer(int numNeurons, double vth, double vdd, double refractory, double cn, double cu, double cpara, double rleak, std::vector<std::vector<double>> weights, EnergyTable* energyTable)
     : m_energyTable(energyTable)
 {
 	for (int i = 0; i < numNeurons; ++i)
 	{
-		m_neurons.emplace_back(vth, vdd, refractory, cn, cu, rleak, weights[i], m_energyTable);
+		m_neurons.emplace_back(vth, vdd, refractory, cn, cu, cpara, rleak, weights[i], m_energyTable);
 	}
 }
 
-BIULayer::BIULayer(int numNeurons, double vdd, double cn, double cu, std::vector<std::vector<double>> weights, EnergyTable * energyTable, const std::vector<double>&vthPerNeuron, const std::vector<int>&refractoryPerNeuron,  const std::vector<double>& rLeakPerNeuron)
+BIULayer::BIULayer(int numNeurons, double vdd, double cn, double cu, double cpara, std::vector<std::vector<double>> weights, EnergyTable * energyTable, const std::vector<double>&vthPerNeuron, const std::vector<int>&refractoryPerNeuron,  const std::vector<double>& rLeakPerNeuron)
 	 : m_energyTable(energyTable)
 {
 	if ((int)vthPerNeuron.size() != numNeurons || (int)refractoryPerNeuron.size() != numNeurons || (int)rLeakPerNeuron.size() != numNeurons)
@@ -21,7 +21,7 @@ BIULayer::BIULayer(int numNeurons, double vdd, double cn, double cu, std::vector
 	
 	for (int i = 0; i < numNeurons; ++i)
 	{
-		m_neurons.emplace_back(vthPerNeuron[i], vdd, (double)refractoryPerNeuron[i],cn, cu, rLeakPerNeuron[i], weights[i], m_energyTable);
+		m_neurons.emplace_back(vthPerNeuron[i], vdd, (double)refractoryPerNeuron[i],cn, cu, cpara, rLeakPerNeuron[i], weights[i], m_energyTable);
 	}
 }
 
@@ -58,5 +58,11 @@ double BIULayer::getTotalLayerNeuronsEnergy() const
 {
 	double sum = 0.0;
 	for (const auto& neuron : m_neurons) sum += neuron.getNeuronEnergy();
+	return sum;
+}
+double BIULayer::getTotaVINS() const
+{
+	double sum = 0.0;
+	for (const auto& neuron : m_neurons) sum += neuron.m_vin_sum;
 	return sum;
 }

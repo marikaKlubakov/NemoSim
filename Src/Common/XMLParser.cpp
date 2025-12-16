@@ -283,6 +283,7 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
     parseDouble(BIU, "VDD", params.VDD);
     parseDouble(BIU, "Cn", params.Cn);
     parseDouble(BIU, "Cu", params.Cu);
+    parseDouble(BIU, "CPara", params.CPara);
     parseInt(BIU, "DSBitWidth", params.DSBitWidth);
     parseDouble(BIU, "DSClockMHz", params.DSClockMHz);
     parseDouble(BIU, "refractory", params.refractory);
