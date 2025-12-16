@@ -28,6 +28,7 @@ struct NetworkParameters {
     double VTh = 0.0;
     double dt = 0.0;
     double IR = 0.0;
+    double CPara = 0.0;
 
     // BIU-specific
     double fclk = 0.0;

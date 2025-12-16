@@ -8,8 +8,8 @@ class EnergyTable; // Forward declaration
 class BIULayer
 {
 public:
-	BIULayer(int numNeurons, double vth, double vdd, double refractory, double cn, double cu, double rleak, std::vector<std::vector<double>> weights, EnergyTable* energyTable = nullptr);
-	BIULayer(int numNeurons, double vdd, double cn, double cu, std::vector<std::vector<double>> weights, EnergyTable * energyTable, const std::vector<double>&vthPerNeuron, const std::vector<int>&refractoryPerNeuron, const std::vector<double>& rLeakPerNeuron);
+	BIULayer(int numNeurons, double vth, double vdd, double refractory, double cn, double cu, double cpara, double rleak, std::vector<std::vector<double>> weights, EnergyTable* energyTable = nullptr);
+	BIULayer(int numNeurons, double vdd, double cn, double cu, double cpara, std::vector<std::vector<double>> weights, EnergyTable * energyTable, const std::vector<double>&vthPerNeuron, const std::vector<int>&refractoryPerNeuron, const std::vector<double>& rLeakPerNeuron);
 	void setInputs(const std::vector<double>& inputs);
 	std::vector<bool> update();
 	std::vector<double> getVns(int index) const { return m_neurons[index].getVns(); }
@@ -18,6 +18,7 @@ public:
 	unsigned int getLayerSize() const;
 	double getTotalLayerSynapsesEnergy() const;
 	double getTotalLayerNeuronsEnergy() const;
+	double getTotaVINS() const;
 private:
 	std::vector<BIUNeuron> m_neurons;
     EnergyTable* m_energyTable = nullptr;

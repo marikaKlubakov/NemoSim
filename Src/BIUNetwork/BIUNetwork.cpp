@@ -29,14 +29,14 @@ BIUNetwork::BIUNetwork(NetworkParameters params)
 
         if (havePerNeuron)
         {
-            m_vecLayers.emplace_back(params.layerSizes[i], params.VDD, params.Cn, params.Cu,
+            m_vecLayers.emplace_back(params.layerSizes[i], params.VDD, params.Cn, params.Cu, params.CPara,
                                      params.allWeights[i], m_energyTable,
                                      params.biuNeuronVTh[i], params.biuNeuronRefractory[i], params.biuNeuronRLeak[i]);
         }
         else
         {
             m_vecLayers.emplace_back(params.layerSizes[i], params.VTh, params.VDD, params.refractory,
-                                     params.Cn, params.Cu, params.Rleak,
+                                     params.Cn, params.CPara, params.Cu, params.Rleak,
                                      params.allWeights[i], m_energyTable);
         }
     }
@@ -99,32 +99,27 @@ void BIUNetwork::run(std::ifstream& inputFile)
 
         // Gating loop: keep ticking until ALL DS units have produced at least one spike.
         std::vector<bool> haveSpiked(m_dsUnits.size(), false);
-        const std::size_t maxSafetyCycles = 1'000'000; // safety cap
+        const std::size_t maxSafetyCycles = 32; // safety cap
         std::size_t cycles = 0;
 
         while (true)
         {
             std::vector<double> dsOut;
             dsOut.reserve(m_dsUnits.size());
-            bool all = true;
+           
 
             // Tick each DS; record first spike occurrence.
             for (size_t i = 0; i < m_dsUnits.size(); ++i)
             {
                 bool spk = m_dsUnits[i].tick();
-                if (spk) haveSpiked[i] = true;
-                if (!haveSpiked[i]) all = false;
                 dsOut.push_back(spk ? 1.0 : 0.0);
             }
 
             setInputs(dsOut);
             update();
 
-            if (all) break;
             if (++cycles > maxSafetyCycles)
             {
-                std::cerr << "Warning: DS gating exceeded safety cycles on line " << currentLine
-                          << ". Proceeding to next line.\n";
                 break;
             }
         }
@@ -140,6 +135,11 @@ void BIUNetwork::run(std::ifstream& inputFile)
 
     auto totalNeuronsEnergy = getTotalNeuronsEnergy();
     std::cout << "Total neurons energy: " << totalNeuronsEnergy << " fJ" << '\n';
+
+    auto totalspk = getTotalspikes();
+    std::cout << "Total spike ins: " << totalspk << " " << '\n';
+
+
 }
 
 void BIUNetwork::setInputs(const std::vector<double>& inputs)
@@ -225,6 +225,13 @@ double BIUNetwork::getTotalSynapsesEnergy()
 {
     double sum = 0.0;
     for (const auto& layer : m_vecLayers) sum += layer.getTotalLayerSynapsesEnergy();
+    return sum;
+}
+
+double BIUNetwork::getTotalspikes()
+{
+    double sum = 0.0;
+    for (const auto& layer : m_vecLayers) sum += layer.getTotaVINS();
     return sum;
 }
 
