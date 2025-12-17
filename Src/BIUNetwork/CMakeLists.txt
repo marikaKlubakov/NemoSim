@@ -27,6 +27,11 @@ set(HEADERS
 add_library(BIUNetwork STATIC ${SOURCES} ${HEADERS})
 
 # Allow NEMOSIM to use BIUNetwork headers
-target_include_directories(BIUNetwork PUBLIC ${CMAKE_SOURCE_DIR}/BIUNetwork)
+target_include_directories(BIUNetwork PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(BIUNetwork PRIVATE DS)
+
+# Link math library on Unix systems (needed for std::exp)
+if(UNIX)
+    target_link_libraries(BIUNetwork PRIVATE m)
+endif()

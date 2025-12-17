@@ -21,4 +21,4 @@ include_directories(${CMAKE_SOURCE_DIR}/Src/NemoSimEngine)
 add_library(ANNNetwork STATIC ${SOURCES} ${HEADERS})
 
 # Allow NEMOSIM to use ANNNetwork headers
-target_include_directories(ANNNetwork PUBLIC ${CMAKE_SOURCE_DIR}/ANNNetwork)
+target_include_directories(ANNNetwork PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
