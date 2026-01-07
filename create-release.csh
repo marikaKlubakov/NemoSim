@@ -29,12 +29,12 @@ endif
 mkdir -p "$TEMP_DIR"
 
 # Copy files to package
-cp "$OUTPUT_DIR/NEMOSIM" "$TEMP_DIR/"
-cp "$BASE_DIR/Doc/readme.txt" "$TEMP_DIR/"
-cp "$BASE_DIR/Src/Common/tinyxml2.h" "$TEMP_DIR/"
-cp "$BASE_DIR/Src/LIFNetwork/plot_vm_to_dt.py" "$TEMP_DIR/"
-cp "$BASE_DIR/Src/LIFNetwork/input_creator.py" "$TEMP_DIR/"
-cp "$BASE_DIR/Src/BIUNetwork/plot_vn_to_dt.py" "$TEMP_DIR/"
+cp "$OUTPUT_DIR/../NEMOSIM" "$TEMP_DIR/"
+cp "$BASE_DIR/../Doc/readme.txt" "$TEMP_DIR/"
+cp "$BASE_DIR/../Src/Common/tinyxml2.h" "$TEMP_DIR/"
+cp "$BASE_DIR/../Src/LIFNetwork/plot_vm_to_dt.py" "$TEMP_DIR/"
+cp "$BASE_DIR/../Src/LIFNetwork/input_creator.py" "$TEMP_DIR/"
+cp "$BASE_DIR/../Src/BIUNetwork/plot_vn_to_dt.py" "$TEMP_DIR/"
 
 # Copy Tests directory excluding postBuildTester.py
 mkdir -p "$TEMP_DIR/Tests"
