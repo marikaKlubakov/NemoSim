@@ -13,6 +13,8 @@ enum class NetworkTypes {
     ANNNetworkType   // <-- added
 };
 
+enum class Verbosity { Info, Debug }; // NEW
+
 /* =========================================================
    Parameters (kept all your existing fields; only added ANN)
    ========================================================= */
@@ -101,6 +103,8 @@ struct NetworkParameters {
         YFlashBlock yflash;
     };
     std::vector<PEBlock> annPEs;
+
+    Verbosity verbosity = Verbosity::Info; // NEW
 };
 
 /* =========================================================
@@ -114,6 +118,7 @@ enum class ConfigKey {
     NeuronEnergyCsvPath,
     SynapsesEnergyCsvPath,
     ProgressIntervalSeconds,
+    Verbosity, // NEW
     Unknown
 };
 
@@ -125,6 +130,7 @@ struct Config {
     std::string neuronEnergyCsvPath;
     std::string synapsesEnergyCsvPath;
     int         progressIntervalSeconds = 30;
+    Verbosity   verbosity = Verbosity::Info; // NEW
 };
 
 /* =========================================================
@@ -146,7 +152,8 @@ static const std::unordered_map<std::string, ConfigKey> StringToConfigKey = {
     {"XmlConfigPath",          ConfigKey::XmlConfigPath},
     {"SupXmlConfigPath",       ConfigKey::SupXmlConfigPath},
     {"DataInputFile",          ConfigKey::DataInputFile},
-    {"NeuronEnergyTablePath",                ConfigKey::NeuronEnergyCsvPath},  // <-- preserved
-    {"SynapsesEnergyTablePath",                ConfigKey::SynapsesEnergyCsvPath},  // <-- preserved
-    {"ProgressIntervalSeconds",ConfigKey::ProgressIntervalSeconds}
+    {"NeuronEnergyTablePath",  ConfigKey::NeuronEnergyCsvPath},
+    {"SynapsesEnergyTablePath",ConfigKey::SynapsesEnergyCsvPath},
+    {"ProgressIntervalSeconds",ConfigKey::ProgressIntervalSeconds},
+    {"Verbosity",              ConfigKey::Verbosity} // NEW
 };

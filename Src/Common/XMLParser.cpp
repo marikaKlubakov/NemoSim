@@ -4,8 +4,17 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <cmath>
 
 using namespace tinyxml2;
+
+// helper to parse verbosity string
+static Verbosity parseVerbosityValue(const std::string& v) {
+    std::string s = v;
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    if (s == "debug") return Verbosity::Debug;
+    return Verbosity::Info;
+}
 
 // ---------------- utils ----------------
 
@@ -15,6 +24,24 @@ static std::string trim(const std::string& str)
     size_t start = str.find_first_not_of(whitespace);
     size_t end = str.find_last_not_of(whitespace);
     return (start == std::string::npos) ? "" : str.substr(start, end - start + 1);
+}
+
+static ConfigKey getConfigKey(const std::string& key)
+{
+    static const std::unordered_map<std::string, ConfigKey> keyMap =
+    {
+        {"output_directory", ConfigKey::OutputDirectory},
+        {"xml_config_path", ConfigKey::XmlConfigPath},
+        {"sup_xml_config_path", ConfigKey::SupXmlConfigPath},
+        {"data_input_file", ConfigKey::DataInputFile},
+        {"neuron_energy_table_path", ConfigKey::NeuronEnergyCsvPath},
+        {"synapses_energy_table_path", ConfigKey::SynapsesEnergyCsvPath},
+        {"progress_interval_seconds", ConfigKey::ProgressIntervalSeconds},
+        {"verbosity", ConfigKey::Verbosity} // NEW (lowercase key for sidecar file)
+    };
+
+    auto it = keyMap.find(key);
+    return it != keyMap.end() ? it->second : ConfigKey::Unknown;
 }
 
 bool XMLParser::parseDouble(XMLElement* parent, const char* tag, double& out)
@@ -66,6 +93,20 @@ void XMLParser::applyNeuronRanges(XMLElement* layer, int size,
         bool hasR = parseInt(r, "refractory", refrVal);
         bool hasL = parseDouble(r, "RLeak", rleakVal);
         if (!hasV && !hasR && !hasL) continue; // nothing to apply
+
+        // Validate values before applying
+        if (hasV && vthVal <= 0.0)
+        {
+            throw std::runtime_error("BIU Configuration Error: NeuronRange VTh must be positive, got: " + std::to_string(vthVal));
+        }
+        if (hasR && refrVal < 0)
+        {
+            throw std::runtime_error("BIU Configuration Error: NeuronRange refractory cannot be negative, got: " + std::to_string(refrVal));
+        }
+        if (hasL && rleakVal <= 0.0)
+        {
+            throw std::runtime_error("BIU Configuration Error: NeuronRange RLeak must be positive, got: " + std::to_string(rleakVal));
+        }
 
         for (int i = s; i <= e; ++i) {
             if (hasV) perVTh[i] = vthVal;
@@ -159,23 +200,6 @@ bool XMLParser::parse(const std::string& filename, NetworkParameters& params)
 
 // ---------------- public: CFG entry ----------------
 
-static ConfigKey getConfigKey(const std::string& key)
-{
-    static const std::unordered_map<std::string, ConfigKey> keyMap =
-    {
-        {"output_directory", ConfigKey::OutputDirectory},
-        {"xml_config_path", ConfigKey::XmlConfigPath},
-        {"sup_xml_config_path", ConfigKey::SupXmlConfigPath},
-        {"data_input_file", ConfigKey::DataInputFile},
-        {"neuron_energy_table_path", ConfigKey::NeuronEnergyCsvPath},
-        {"synapses_energy_table_path", ConfigKey::SynapsesEnergyCsvPath},
-        {"progress_interval_seconds", ConfigKey::ProgressIntervalSeconds}
-    };
-
-    auto it = keyMap.find(key);
-    return it != keyMap.end() ? it->second : ConfigKey::Unknown;
-}
-
 Config XMLParser::parseConfigFromFile(const std::string& filePath)
 {
     Config config;
@@ -197,7 +221,7 @@ Config XMLParser::parseConfigFromFile(const std::string& filePath)
         size_t start = line.find_first_not_of(" \t", colon + 1);
 
         std::string value;
-        if (line[start] == '"')
+        if (start != std::string::npos && line[start] == '"')
         {
             // Value is a quoted string
             size_t end = line.find('"', start + 1);
@@ -209,8 +233,6 @@ Config XMLParser::parseConfigFromFile(const std::string& filePath)
             size_t end = line.find_first_of(", \t\r\n", start);
             value = line.substr(start, end - start);
         }
-
-
 
         switch (getConfigKey(key))
         {
@@ -235,13 +257,15 @@ Config XMLParser::parseConfigFromFile(const std::string& filePath)
         case ConfigKey::ProgressIntervalSeconds:
             config.progressIntervalSeconds = std::stoi(value);
             break;
+        case ConfigKey::Verbosity:
+            config.verbosity = parseVerbosityValue(value);
+            break;
         default:
             std::cerr << "Unknown config key: " << key << std::endl;
             break;
         }
     }
     return config;
-
 }
 
 
@@ -288,6 +312,33 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
     parseDouble(BIU, "DSClockMHz", params.DSClockMHz);
     parseDouble(BIU, "refractory", params.refractory);
 
+    // Validate basic BIU network parameters
+    if (params.VTh <= 0.0)
+    {
+        throw std::runtime_error("BIU Configuration Error: VTh (threshold voltage) must be positive, got: " + std::to_string(params.VTh));
+    }
+
+    if (params.VTh >= params.VDD)
+    {
+        throw std::runtime_error("BIU Configuration Error: VTh must be less than VDD (VTh=" + std::to_string(params.VTh) + 
+                                ", VDD=" + std::to_string(params.VDD) + ")");
+    }
+
+    if (params.refractory < 0.0)
+    {
+        throw std::runtime_error("BIU Configuration Error: Refractory period cannot be negative, got: " + std::to_string(params.refractory));
+    }
+
+    if (params.DSClockMHz <= 0.0)
+    {
+        throw std::runtime_error("BIU Configuration Error: DSClockMHz must be positive, got: " + std::to_string(params.DSClockMHz));
+    }
+
+    if (params.DSBitWidth <= 0 || params.DSBitWidth > 16)
+    {
+        throw std::runtime_error("BIU Configuration Error: DSBitWidth must be between 1 and 16, got: " + std::to_string(params.DSBitWidth));
+    }
+
     if (arch && params.networkType == NetworkTypes::BIUNetworkType)
     {
         // Parse DS mode correctly
@@ -307,7 +358,7 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
                 }
                 else
                 {
-                    std::cerr << "Error: Unknown DSMode '" << key << "'. Falling back to default (ThresholdMode).\n";
+                    throw std::runtime_error("BIU Configuration Error: Unknown DSMode '" + key + "'. Valid values are: FrequencyMode, ThresholdMode");
                 }
             }
             else
@@ -326,12 +377,18 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
             int size;
             if (layer->QueryIntAttribute("size", &size) == tinyxml2::XML_SUCCESS)
             {
+                if (size <= 0)
+                {
+                    std::ostringstream oss;
+                    oss << "BIU Configuration Error: Layer " << layerIdx << " size must be positive, got: " << size;
+                    throw std::runtime_error(oss.str());
+                }
                 params.layerSizes.push_back(size);
             }
             else
             {
                 std::ostringstream oss;
-                oss << "Error: Missing or invalid 'size' in BIU <Layer> at index " << layerIdx;
+                oss << "BIU Configuration Error: Missing or invalid 'size' attribute in <Layer> at index " << layerIdx;
                 throw std::runtime_error(oss.str());
             }
             auto* synapses = layer->FirstChildElement("synapses");
@@ -342,35 +399,78 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
                 if (weightsElem)
                 {
                     int rowIdx = 0;
+                    size_t expectedInputs = 0;
                     for (auto* rowElem = weightsElem->FirstChildElement("row"); rowElem != nullptr; rowElem = rowElem->NextSiblingElement("row"), ++rowIdx)
                     {
                         const char* rowText = rowElem->GetText();
                         if (!rowText)
                         {
                             std::ostringstream oss;
-                            oss << "Error: Empty <row> in weights at layer " << layerIdx << ", row " << rowIdx;
+                            oss << "BIU Configuration Error: Empty <row> in weights at layer " << layerIdx << ", row " << rowIdx;
                             throw std::runtime_error(oss.str());
                         }
                         std::istringstream iss(rowText);
                         std::vector<double> rowWeights;
                         double w;
                         while (iss >> w)
+                        {
+                            if (!std::isfinite(w))
+                            {
+                                std::ostringstream oss;
+                                oss << "BIU Configuration Error: Invalid weight value (NaN or Inf) at layer " << layerIdx 
+                                    << ", row " << rowIdx;
+                                throw std::runtime_error(oss.str());
+                            }
                             rowWeights.push_back(w);
+                        }
+                        
+                        if (rowWeights.empty())
+                        {
+                            std::ostringstream oss;
+                            oss << "BIU Configuration Error: Layer " << layerIdx << ", row " << rowIdx 
+                                << " has no weights";
+                            throw std::runtime_error(oss.str());
+                        }
+                        
+                        // Set expected input count from first row
+                        if (rowIdx == 0)
+                        {
+                            expectedInputs = rowWeights.size();
+                        }
+                        else if (rowWeights.size() != expectedInputs)
+                        {
+                            std::ostringstream oss;
+                            oss << "BIU Configuration Error: Layer " << layerIdx << ", row " << rowIdx 
+                                << " has " << rowWeights.size() << " weights, expected " << expectedInputs 
+                                << " (all neurons in a layer must have the same number of inputs)";
+                            throw std::runtime_error(oss.str());
+                        }
+                        
                         layerWeights.push_back(rowWeights);
                     }
                 }
                 else
                 {
                     std::ostringstream oss;
-                    oss << "Error: <weights> element missing in <synapses> at layer " << layerIdx;
+                    oss << "BIU Configuration Error: <weights> element missing in <synapses> at layer " << layerIdx;
                     throw std::runtime_error(oss.str());
                 }
+                
+                // Validate weight matrix dimensions match layer size
+                if (layerWeights.size() != static_cast<size_t>(size))
+                {
+                    std::ostringstream oss;
+                    oss << "BIU Configuration Error: Layer " << layerIdx << " has " << layerWeights.size() 
+                        << " weight rows but layer size is " << size << " (must match number of neurons)";
+                    throw std::runtime_error(oss.str());
+                }
+                
                 params.allWeights.push_back(layerWeights);
             }
             else
             {
                 std::ostringstream oss;
-                oss << "Error: <synapses> missing in <Layer> at index " << layerIdx;
+                oss << "BIU Configuration Error: <synapses> missing in <Layer> at index " << layerIdx;
                 throw std::runtime_error(oss.str());
             }
 
@@ -387,19 +487,105 @@ void XMLParser::BIUNetworkParser(XMLElement* BIU, XMLElement* arch, NetworkParam
                 if (n->QueryIntAttribute("index", &idx) != XML_SUCCESS || idx < 0 || idx >= size)
                 {
                     std::ostringstream oss;
-                    oss << "Error: <Neuron> missing/invalid 'index' in layer " << layerIdx;
+                    oss << "BIU Configuration Error: <Neuron> missing/invalid 'index' in layer " << layerIdx;
                     throw std::runtime_error(oss.str());
                 }
                 double vthOverride, rleakOverride;
                 int refrOverride;
-                if (parseDouble(n, "VTh", vthOverride)) perVTh[idx] = vthOverride;
-                if (parseInt(n, "refractory", refrOverride)) perRefractory[idx] = refrOverride;
-                if (parseDouble(n, "RLeak", rleakOverride)) perRLeak[idx] = rleakOverride;
+                if (parseDouble(n, "VTh", vthOverride))
+                {
+                    if (vthOverride <= 0.0)
+                    {
+                        std::ostringstream oss;
+                        oss << "BIU Configuration Error: Layer " << layerIdx << ", neuron " << idx
+                            << " VTh override must be positive, got: " << vthOverride;
+                        throw std::runtime_error(oss.str());
+                    }
+                    perVTh[idx] = vthOverride;
+                }
+                if (parseInt(n, "refractory", refrOverride))
+                {
+                    if (refrOverride < 0)
+                    {
+                        std::ostringstream oss;
+                        oss << "BIU Configuration Error: Layer " << layerIdx << ", neuron " << idx
+                            << " refractory override cannot be negative, got: " << refrOverride;
+                        throw std::runtime_error(oss.str());
+                    }
+                    perRefractory[idx] = refrOverride;
+                }
+                if (parseDouble(n, "RLeak", rleakOverride))
+                {
+                    if (rleakOverride <= 0.0)
+                    {
+                        std::ostringstream oss;
+                        oss << "BIU Configuration Error: Layer " << layerIdx << ", neuron " << idx
+                            << " RLeak override must be positive, got: " << rleakOverride;
+                        throw std::runtime_error(oss.str());
+                    }
+                    perRLeak[idx] = rleakOverride;
+                }
+            }
+
+            // Validate per-neuron parameters
+            for (int i = 0; i < size; ++i)
+            {
+                if (perVTh[i] <= 0.0)
+                {
+                    std::ostringstream oss;
+                    oss << "BIU Configuration Error: Layer " << layerIdx << ", neuron " << i 
+                        << " has invalid VTh: " << perVTh[i] << " (must be positive)";
+                    throw std::runtime_error(oss.str());
+                }
+                
+                if (perVTh[i] >= params.VDD)
+                {
+                    std::ostringstream oss;
+                    oss << "BIU Configuration Error: Layer " << layerIdx << ", neuron " << i 
+                        << " has VTh (" << perVTh[i] << ") >= VDD (" << params.VDD << ")";
+                    throw std::runtime_error(oss.str());
+                }
+                
+                if (perRefractory[i] < 0)
+                {
+                    std::ostringstream oss;
+                    oss << "BIU Configuration Error: Layer " << layerIdx << ", neuron " << i 
+                        << " has negative refractory period: " << perRefractory[i];
+                    throw std::runtime_error(oss.str());
+                }
+                
+                if (perRLeak[i] <= 0.0)
+                {
+                    std::ostringstream oss;
+                    oss << "BIU Configuration Error: Layer " << layerIdx << ", neuron " << i 
+                        << " has invalid RLeak: " << perRLeak[i] << " (must be positive)";
+                    throw std::runtime_error(oss.str());
+                }
             }
 
             params.biuNeuronVTh.push_back(std::move(perVTh));
             params.biuNeuronRefractory.push_back(std::move(perRefractory));
             params.biuNeuronRLeak.push_back(std::move(perRLeak));
+        }
+
+        // Validate that at least one layer was parsed
+        if (params.layerSizes.empty())
+        {
+            throw std::runtime_error("BIU Configuration Error: No layers defined in <Architecture>. Network must have at least one layer.");
+        }
+
+        // Validate layer connectivity (input/output dimensions match)
+        for (size_t i = 1; i < params.allWeights.size(); ++i)
+        {
+            size_t prevLayerSize = params.layerSizes[i - 1];
+            size_t currentLayerInputs = params.allWeights[i][0].size();
+            if (currentLayerInputs != prevLayerSize)
+            {
+                std::ostringstream oss;
+                oss << "BIU Configuration Error: Layer " << i << " expects " << currentLayerInputs
+                    << " inputs but previous layer " << (i-1) << " has " << prevLayerSize << " neurons";
+                throw std::runtime_error(oss.str());
+            }
         }
     }
 }

@@ -92,6 +92,7 @@ bool RetrieveNetworkParamsFromXML(XMLParser* parser, NetworkParameters* params, 
 		params->synapsesEnergyCsvPath = config.synapsesEnergyCsvPath;
 	}
 
+	params->verbosity = config.verbosity;
 	return true;
 }
 
@@ -111,6 +112,19 @@ int main(int argc, char* argv[])
 		//parse json file
 		Config config = parser.parseConfigFromFile(argv[1]);
 
+		// Validate configuration paths
+		if (config.xmlConfigPath.empty())
+		{
+			std::cerr << "Configuration Error: XML configuration path is empty. Please specify 'XmlConfigPath' in the JSON config." << std::endl;
+			return 1;
+		}
+
+		if (config.dataInputPath.empty())
+		{
+			std::cerr << "Configuration Error: Data input path is empty. Please specify 'DataInputFile' in the JSON config." << std::endl;
+			return 1;
+		}
+
 		// Parse the XML file to get network parameters
 		bool succeed = RetrieveNetworkParamsFromXML(&parser, &params, config);
 		if (!succeed)
@@ -122,7 +136,7 @@ int main(int argc, char* argv[])
 
 		std::ifstream inputFile(config.dataInputPath);
 		if (!inputFile.is_open()) {
-		    std::cerr << "Failed to open input data file: " << config.dataInputPath << std::endl;
+		    std::cerr << "Input Data Error: Failed to open input data file: " << config.dataInputPath << std::endl;
 		    return 1;
 		}
 		//change working directory

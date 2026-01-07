@@ -12,16 +12,18 @@ class EnergyTable; // Forward declaration
 class BIUNetwork : public BaseNetwork
 {
 public:
-	BIUNetwork(NetworkParameters params);
+	explicit BIUNetwork(NetworkParameters params);
+	~BIUNetwork();
 	void run(std::ifstream& inputFile) override;
 	void printNetworkToFile() override;
 	double getTotalNeuronsEnergy();
 	double getTotalSynapsesEnergy();
 	double getTotalspikes();
 private:
+	Verbosity m_verbosity = Verbosity::Info; // NEW
 	std::vector<BIULayer> m_vecLayers;
 	void setInputs(const std::vector<double>& inputs);
-	std::vector<std::vector<bool>> update();
+	std::vector<std::vector<uint8_t>> update();
 	EnergyTable* m_energyTable = nullptr; // Pointer to energy table for energy calculations
 	// ===== DS front-end (one DS per input channel) =====
 	std::vector<DS> m_dsUnits;            // created to match layer-0 fan-in

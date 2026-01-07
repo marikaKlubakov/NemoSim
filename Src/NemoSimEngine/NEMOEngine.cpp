@@ -20,6 +20,12 @@ NEMOEngine::NEMOEngine(NetworkParameters params)
 	}
 }
 
+NEMOEngine::~NEMOEngine()
+{
+	delete m_pNetwork;
+	m_pNetwork = nullptr;
+}
+
 void NEMOEngine::runEngine(std::ifstream &inputFile)
 {
 	m_pNetwork->run(inputFile);
