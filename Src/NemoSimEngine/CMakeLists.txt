@@ -4,12 +4,9 @@ project(NEMOSIM LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 
 # Compiler settings
-if(UNIX)
-    set(CMAKE_C_COMPILER "/usr/bin/gcc")
-    set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-else()
+if(WIN32)
     set(CMAKE_C_COMPILER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe")
-	set(CMAKE_CXX_COMPILER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe")
+    set(CMAKE_CXX_COMPILER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe")
 endif()
 
 # Include directories

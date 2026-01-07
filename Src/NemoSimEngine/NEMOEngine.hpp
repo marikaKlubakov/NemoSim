@@ -16,6 +16,7 @@ class NEMOEngine
 {
 public:
     NEMOEngine(NetworkParameters params);
+    ~NEMOEngine();
     //void createNetwork(NetworkParameters params);
     void runEngine(std::ifstream &inputFile);
 private:

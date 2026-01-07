@@ -10,7 +10,7 @@
 
 BIUNeuron::BIUNeuron(double vth, double vdd, double refractory,
     double cn, double cu, double cpara, double rLeak,
-    std::vector<double> weights, EnergyTable* energyTable)
+    const std::vector<double>& weights, EnergyTable* energyTable)
     : m_VTH(vth), m_VDD(vdd), m_refractoryTime(refractory),
     m_Cn(cn), m_Cu(cu), m_Cpara(cpara), m_RLeak(rLeak),
     m_synapticWeights(weights), m_energyTable(energyTable)
@@ -31,7 +31,15 @@ void BIUNeuron::setSynapticInputs(const std::vector<double>& inputs)
 	    m_synapticEnergy[i] += m_energyTable->getSynapseEnergy(static_cast<int>(m_synapticWeights[i]), m_synapticInputs[i] > 0);
     }
     if (!m_synapticInputs.empty())
-        m_Vins.emplace_back(m_synapticInputs[0]);
+    {
+		double neuronInput = 0.0;
+        for (size_t i = 0; i < m_synapticInputs.size(); ++i)
+        {
+            neuronInput += m_synapticInputs[i] * m_synapticWeights[i];
+        }
+        m_Vins.emplace_back(neuronInput);
+    }
+       
 }
 
 bool BIUNeuron::update()

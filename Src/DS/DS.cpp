@@ -1,6 +1,32 @@
 #include "DS.hpp"
 #include <stdexcept>
 
+// ===== Minimal addition: static M matrix (16 rows x 32 cycles) =====
+static const int ROWS = 16;
+static const int COLS = 32;
+
+static const int M[ROWS][COLS] =
+{
+	{1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0},
+	{1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0},
+	{1,0,1,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,0,1,0,1,0,1,0},
+	{1,0,1,0,1,0,0,0,1,0,1,0,1,0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,1,0,1,0},
+	{1,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,1,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0},
+	{1,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0},
+	{1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,1,0,0,0,1,0},
+	{1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,1,0},
+	{1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0},
+	{1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0},
+	{1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0},
+	{1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0},
+	{1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0},
+	{1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+};
+
+// ===== Existing DS implementation (minimal changes applied) =====
+
 DS::DS(double clkFreqMHz, unsigned int bw, Mode m)
 	: m_clockFrequencyMHz(clkFreqMHz), m_bitWidth(bw), m_digitalCode(0), m_counter(0),
 	m_spikeWidthNs(100.0), m_minSpikeIntervalNs(200.0), m_lastSpikeTimeNs(-200.0), m_currentTimeNs(0.0),
@@ -13,9 +39,12 @@ DS::DS(double clkFreqMHz, unsigned int bw, Mode m)
 
 void DS::setCode(unsigned int code)
 {
-	if (code >= (1u << m_bitWidth)) throw std::out_of_range("Digital code out of range.");
-	m_digitalCode = code;
-	updateThreshold();
+    // Clamp to [0..ROWS-1] to match M rows
+    if (code >= static_cast<unsigned int>(ROWS))
+        m_digitalCode = ROWS - 1;
+    else
+        m_digitalCode = code;
+    updateThreshold();
 }
 
 void DS::reset()
@@ -41,15 +70,13 @@ void DS::updateThreshold()
 
 bool DS::tick()
 {
+    // Read spike from M[code][cycle] and advance cycle modulo 32
+    const int val = M[m_digitalCode][m_counter % COLS];
+    const bool spike = (val != 0);
+
 	m_currentTimeNs += m_clockPeriodNs;
 	m_counter++;
-	if (m_counter >= m_threshold)
-	{
-		m_counter = 0;
-		m_lastSpikeTimeNs = m_currentTimeNs;
-		return true;
-	}
-	return false;
+	return spike;
 }
 
 bool DS::isSpikeActive() const

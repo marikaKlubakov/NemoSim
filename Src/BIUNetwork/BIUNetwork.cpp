@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <cmath>
 
 // One log file per DS unit: DS_0, DS_1, ...
 static std::vector<std::ofstream> s_dsLogs;
@@ -12,6 +13,7 @@ BIUNetwork::BIUNetwork(NetworkParameters params)
     m_dsClockMHz = params.DSClockMHz;
     m_dsBitWidth = static_cast<unsigned int>(params.DSBitWidth);
     m_dsMode     = params.DSMode;
+    m_verbosity  = params.verbosity; // NEW
 
     m_energyTable = new EnergyTable();
     if (!params.allWeights.empty() && !params.allWeights[0].empty())
@@ -54,11 +56,16 @@ BIUNetwork::BIUNetwork(NetworkParameters params)
     }
 }
 
+BIUNetwork::~BIUNetwork()
+{
+    delete m_energyTable;
+    m_energyTable = nullptr;
+}
+
 void BIUNetwork::run(std::ifstream& inputFile)
 {
     if (!inputFile.is_open()) {
-        std::cerr << "Unable to open file\n";
-        return;
+        throw std::runtime_error("BIUNetwork Error: Input file is not open");
     }
 
     const std::size_t totalLines = countLines(inputFile);
@@ -74,7 +81,21 @@ void BIUNetwork::run(std::ifstream& inputFile)
         std::istringstream iss(line);
         std::vector<double> values;
         double v;
-        while (iss >> v) values.push_back(v);
+        while (iss >> v)
+        {
+            if (!std::isfinite(v))
+            {
+                throw std::runtime_error("BIUNetwork Error: Invalid input value at line " + 
+                                        std::to_string(currentLine) + " (NaN or Inf detected)");
+            }
+            values.push_back(v);
+        }
+        
+        if (values.empty() && !line.empty())
+        {
+            throw std::runtime_error("BIUNetwork Error: Failed to parse values from line " + 
+                                    std::to_string(currentLine));
+        }
 
         // If no DS front-end, fall back to original single-step behavior.
         if (m_dsUnits.empty())
@@ -86,19 +107,18 @@ void BIUNetwork::run(std::ifstream& inputFile)
         }
 
         // Set new codes (one per DS) for this line (no tick yet).
-        const size_t n = std::min(values.size(), m_dsUnits.size());
+        if (values.size() != m_dsUnits.size())
+        {
+            throw std::runtime_error("input line size is not equal to the number of digital to spike units");
+        }
+        const size_t n = values.size();
+        
         for (size_t i = 0; i < n; ++i)
         {
             m_dsUnits[i].setCode(clampToCode_(values[i]));
         }
-        // If fewer codes than DS units: leave remaining codes unchanged or set to zero
-        for (size_t i = n; i < m_dsUnits.size(); ++i)
-        {
-            m_dsUnits[i].setCode(0);
-        }
 
-        // Gating loop: keep ticking until ALL DS units have produced at least one spike.
-        std::vector<bool> haveSpiked(m_dsUnits.size(), false);
+        // Gating loop: keep ticking until safety limit reached
         const std::size_t maxSafetyCycles = 32; // safety cap
         std::size_t cycles = 0;
 
@@ -118,7 +138,7 @@ void BIUNetwork::run(std::ifstream& inputFile)
             setInputs(dsOut);
             update();
 
-            if (++cycles > maxSafetyCycles)
+            if (++cycles >= maxSafetyCycles)
             {
                 break;
             }
@@ -150,8 +170,7 @@ void BIUNetwork::setInputs(const std::vector<double>& inputs)
         
         for (size_t i = 0; i < n; ++i)
         {
-            if (i < s_dsLogs.size() && s_dsLogs[i].is_open())
-                s_dsLogs[i] << (inputs[i] ? 1 : 0) << '\n';
+            s_dsLogs[i] << (inputs[i] ? 1 : 0) << '\n';
         }
         m_vecLayers[0].setInputs(inputs);
     }
@@ -162,9 +181,9 @@ void BIUNetwork::setInputs(const std::vector<double>& inputs)
     }
 }
 
-std::vector<std::vector<bool>> BIUNetwork::update()
+std::vector<std::vector<uint8_t>> BIUNetwork::update()
 {
-    std::vector<std::vector<bool>> allSpikes;
+    std::vector<std::vector<uint8_t>> allSpikes;
     for (size_t i = 0; i < m_vecLayers.size(); ++i)
     {
         if (i > 0)
@@ -189,26 +208,31 @@ void BIUNetwork::printNetworkToFile()
 
         for (size_t neuronIdx = 0; neuronIdx < numNeurons; ++neuronIdx)
         {
-            std::vector<double> Vns    = m_vecLayers[layerIdx].getVns(neuronIdx);
-            std::vector<double> spikes = m_vecLayers[layerIdx].getSpikesVec(neuronIdx);
-            std::vector<double> Vin    = m_vecLayers[layerIdx].getVinVec(neuronIdx);
-
-            std::string vnsFile    = "vns_"    + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
             std::string spikesFile = "spikes_" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
-            std::string vinFile    = "vin_"    + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
 
-            std::ofstream vnsOut(vnsFile);
-            std::ofstream spikesOut(spikesFile);
-            std::ofstream vinOut(vinFile);
+            if (m_verbosity == Verbosity::Debug)
+            {
+                std::vector<double> Vns    = m_vecLayers[layerIdx].getVns(neuronIdx);
+                std::vector<double> spikes = m_vecLayers[layerIdx].getSpikesVec(neuronIdx);
+                std::vector<double> Vin    = m_vecLayers[layerIdx].getVinVec(neuronIdx);
 
-            if (vnsOut.is_open()) {
-                for (const auto& value : Vns) vnsOut << value << '\n';
+                std::string vnsFile = "vns_" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
+                std::string vinFile = "vin_" + std::to_string(layerIdx) + "_" + std::to_string(neuronIdx) + ".txt";
+
+                std::ofstream vnsOut(vnsFile);
+                std::ofstream spikesOut(spikesFile);
+                std::ofstream vinOut(vinFile);
+
+                if (vnsOut.is_open())    for (const auto& v : Vns)    vnsOut << v << '\n';
+                if (spikesOut.is_open()) for (const auto& s : spikes) spikesOut << s << '\n';
+                if (vinOut.is_open())    for (const auto& x : Vin)    vinOut << x << '\n';
             }
-            if (spikesOut.is_open()) {
-                for (const auto& value : spikes) spikesOut << value << '\n';
-            }
-            if (vinOut.is_open()) {
-                for (const auto& value : Vin) vinOut << value << '\n';
+            else
+            {
+                // Info: only spikes
+                std::vector<double> spikes = m_vecLayers[layerIdx].getSpikesVec(neuronIdx);
+                std::ofstream spikesOut(spikesFile);
+                if (spikesOut.is_open()) for (const auto& s : spikes) spikesOut << s << '\n';
             }
         }
     }
@@ -231,7 +255,7 @@ double BIUNetwork::getTotalSynapsesEnergy()
 double BIUNetwork::getTotalspikes()
 {
     double sum = 0.0;
-    for (const auto& layer : m_vecLayers) sum += layer.getTotaVINS();
+    for (const auto& layer : m_vecLayers) sum += layer.getTotalVINS();
     return sum;
 }
 

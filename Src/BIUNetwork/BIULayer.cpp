@@ -33,12 +33,13 @@ void BIULayer::setInputs(const std::vector<double>& inputs)
 	}
 }
 
-std::vector<bool> BIULayer::update()
+std::vector<uint8_t> BIULayer::update()
 {
-	std::vector<bool> spikes;
-	for (auto& neuron : m_neurons)
-	{
-		spikes.push_back(neuron.update());
+	std::vector<uint8_t> spikes;
+	spikes.reserve(m_neurons.size());
+
+	for (auto& neuron : m_neurons) {
+		spikes.push_back(static_cast<uint8_t>(neuron.update()));
 	}
 	return spikes;
 }
@@ -60,7 +61,7 @@ double BIULayer::getTotalLayerNeuronsEnergy() const
 	for (const auto& neuron : m_neurons) sum += neuron.getNeuronEnergy();
 	return sum;
 }
-double BIULayer::getTotaVINS() const
+double BIULayer::getTotalVINS() const
 {
 	double sum = 0.0;
 	for (const auto& neuron : m_neurons) sum += neuron.m_vin_sum;
